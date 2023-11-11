@@ -6,7 +6,7 @@ import NxWelcome from './nx-welcome';
 export function App() {
   return (
     <div>
-      <NxWelcome title="web-ui test" />
+      <NxWelcome title="web-ui test v2" />
     </div>
   );
 }
