@@ -1,11 +1,11 @@
-name: Deploy ui
+name: Deploy static content to Pages
 
 on:
   # Runs on pushes targeting the default branch
   push:
-    branches: ['dev']
+    branches: ['main']
     paths:
-      - 'apps/web-ui/**'
+      - 'apps/my-react-app/**'
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -21,16 +21,31 @@ concurrency:
   group: 'pages'
   cancel-in-progress: true
 
+env:
+  NX_CLOUD_ACCESS_TOKEN: ${{ secrets.NX_CLOUD_ACCESS_TOKEN }}
+
 jobs:
   # Single deploy job since we're just deploying
   deploy:
     if: github.repository == 'rpt-monitoreo/radio-alert-ui'
-    runs-on: self-hosted
-    env:
-      NX_CACHE_DIRECTORY: './.nx/cache'
+
+    runs-on: ubuntu-latest
+
     steps:
       - name: Checkout
         uses: actions/checkout@v3
+
+      - name: Cache node modules
+        uses: actions/cache@v2
+        with:
+          path: '**/node_modules'
+          key: ${{ runner.os }}-modules-${{ hashFiles('**/yarn.lock') }}
+
+      - name: Cache Nx cache
+        uses: actions/cache@v2
+        with:
+          path: '**/.nx/cache'
+          key: ${{ runner.os }}-nx-cache-${{ hashFiles('**/yarn.lock') }}
 
       - name: Set up Node
         uses: actions/setup-node@v3
@@ -42,7 +57,7 @@ jobs:
         run: npm ci
 
       - name: Build
-        run: npx nx build my-react-app --with-deps
+        run: npx nx build web-ui
 
       - name: Setup Pages
         uses: actions/configure-pages@v3
@@ -51,7 +66,7 @@ jobs:
         uses: actions/upload-pages-artifact@v1
         with:
           # Upload dist repository
-          path: './dist/apps/web-ui'
+          path: './dist/apps/my-react-app'
 
       - name: Deploy to GitHub Pages
         id: deployment
