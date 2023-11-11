@@ -24,6 +24,7 @@ concurrency:
 jobs:
   # Single deploy job since we're just deploying
   deploy:
+    if: env.REPO_TYPE == 'ui'
     runs-on: self-hosted
     env:
       NX_CACHE_DIRECTORY: './.nx/cache'
