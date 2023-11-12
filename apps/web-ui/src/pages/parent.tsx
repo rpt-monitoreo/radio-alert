@@ -3,7 +3,7 @@ import Waveform from '../components/waveform';
 import { Switch } from 'antd';
 
 const ParentComponent = () => {
-  const url = import.meta.env.VITE_API_BASE_URL + 'audio';
+  const url = import.meta.env.API_BASE_URL_LOCAL + 'audio';
   const [readonly, setReadonly] = useState(false);
 
   const onSelection = useCallback((start: number, end: number) => {

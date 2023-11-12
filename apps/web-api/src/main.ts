@@ -20,7 +20,7 @@ async function bootstrap() {
     new FastifyAdapter({ logger: true })
   );
   app.register(compression);
-  const globalPrefix = 'api';
+  const globalPrefix = '';
   app.setGlobalPrefix(globalPrefix);
   const port = process.env.PORT || 3000;
   await app.listen(port, '0.0.0.0');
