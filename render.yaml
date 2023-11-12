@@ -1,6 +1,0 @@
-services:
-  - type: web
-    name: web-api
-    env: static
-    buildCommand: echo "Skipping build on Render"
-    staticPublishPath: ./dist/apps/web-api

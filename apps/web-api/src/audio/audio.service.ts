@@ -1,6 +1,6 @@
 // audio.service.ts
 import { Injectable } from '@nestjs/common';
-import ffmpeg from 'fluent-ffmpeg';
+import * as ffmpeg from 'fluent-ffmpeg';
 import * as fs from 'fs';
 import * as path from 'path';
 import stream from 'stream';
