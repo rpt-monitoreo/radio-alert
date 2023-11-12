@@ -2,7 +2,9 @@
   "name": "@radio-alert/source",
   "version": "0.0.0",
   "license": "MIT",
-  "scripts": {},
+  "scripts": {
+    "start": "concurrently  \"nx serve web-ui\" \"nx serve web-api\" \"node delay.js && cd .. && ngrok http --domain=proper-smashing-catfish.ngrok-free.app 3000 --response-header-add='Access-Control-Allow-Origin:*'\" "
+  },
   "private": true,
   "dependencies": {
     "@fastify/compress": "^6.5.0",
@@ -49,6 +51,7 @@
     "@typescript-eslint/parser": "^6.9.1",
     "@vitejs/plugin-react": "~4.0.0",
     "@vitest/ui": "~0.32.0",
+    "concurrently": "^8.2.2",
     "cypress": "^13.0.0",
     "eslint": "~8.46.0",
     "eslint-config-prettier": "^9.0.0",
