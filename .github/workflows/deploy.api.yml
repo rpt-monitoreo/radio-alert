@@ -68,13 +68,10 @@ jobs:
         run: |
           git branch -M build-artifacts
 
-      - name: Get the comment
-        run: COMMENT_BODY=${{ github.event.comment.body }}
-
       - name: Commit and push
         run: |
           git add dist/apps/web-api -f
-          git commit -m "$COMMENT_BODY"
+          git commit -m "Deploy artifact"
           git push origin build-artifacts --force
 
       - name: Deploy to Render
