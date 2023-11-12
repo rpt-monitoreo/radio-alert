@@ -59,6 +59,11 @@ jobs:
       - name: Build
         run: npx nx build web-api
 
+      - name: Sing Git
+        run: |
+          git config --global user.email "juan.baquero.z@outlook.com"
+          git config --global user.name "Juan Baquero"
+
       - name: Create build-artifacts
         run: |
           git branch -M build-artifacts
