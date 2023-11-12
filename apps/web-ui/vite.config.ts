@@ -17,7 +17,7 @@ export default defineConfig({
   },
 
   plugins: [react(), nxViteTsPaths()],
-  base: '/radio-alert-ui',
+  base: '/radio-alert',
 
   // Uncomment this if you are using workers.
   // worker: {
