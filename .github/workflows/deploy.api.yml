@@ -59,6 +59,16 @@ jobs:
       - name: Build
         run: npx nx build web-api
 
+      - name: Create build-artifacts
+        run: |
+          git branch -M build-artifacts
+
+      - name: Commit and push
+        run: |
+          git add dist/apps/web-api -f
+          git commit -m "${{ github.event.comment.body }}"
+          git push origin build-artifacts --force
+
       - name: Deploy to Render
         uses: JorgeLNJunior/render-deploy@v1.4.2
         with:
