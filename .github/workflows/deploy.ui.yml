@@ -27,7 +27,6 @@ env:
 jobs:
   # Single deploy job since we're just deploying
   deploy:
-    if: github.repository == 'rpt-monitoreo/radio-alert-ui'
 
     runs-on: ubuntu-latest
 
