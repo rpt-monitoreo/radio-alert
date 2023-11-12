@@ -1,1 +1,25 @@
 /* Your styles goes here. */
+:where(.css-dev-only-do-not-override-zovvhr).ant-pro-page-container
+  :where(
+    .css-dev-only-do-not-override-zovvhr
+  ).ant-pro-page-container-warp-page-header {
+  padding-block-start: 8px;
+  padding-block-end: 8px;
+  padding-inline-start: 8px;
+  padding-inline-end: 8px;
+}
+
+:where(
+    .css-dev-only-do-not-override-zovvhr
+  ).ant-pro-page-container-children-container {
+  padding-block-end: 8px;
+  padding-inline: 8px;
+}
+
+:where(.css-dev-only-do-not-override-zovvhr).ant-pro-card .ant-pro-card-body {
+  display: block;
+  box-sizing: border-box;
+  height: 100%;
+  padding-inline: 16px;
+  padding-block: 16px;
+}
