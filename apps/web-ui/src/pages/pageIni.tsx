@@ -1,4 +1,4 @@
-import { useFetchUsers } from '@/services/inicial';
+import { useFetchUsers } from '../services/inicial';
 import ParentComponent from './parent';
 
 function FetchUsers() {
