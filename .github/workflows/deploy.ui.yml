@@ -56,11 +56,6 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Print Environment Variables
-        run: |
-          echo "VITE_API=$VITE_API"
-          echo "VITE_API_LOCAL=$VITE_API_LOCAL"
-
       - name: Build
         run: npx nx build web-ui
 
