@@ -11,7 +11,7 @@ export default defineConfig({
   define: {
     'process.env': {
       VITE_API: JSON.stringify(process.env.VITE_API),
-      VITE_API_URL: JSON.stringify(process.env.VITE_API_URL),
+      VITE_API_LOCAL: JSON.stringify(process.env.VITE_API_LOCAL),
     },
   },
   cacheDir: '../../node_modules/.vite/web-ui',

@@ -25,8 +25,6 @@ env:
   NX_CLOUD_ACCESS_TOKEN: ${{ secrets.NX_CLOUD_ACCESS_TOKEN }}
   VITE_API: ${{ secrets.VITE_API }}
   VITE_API_LOCAL: ${{ secrets.VITE_API_LOCAL }}
-  API: ${{ secrets.VITE_API }}
-  API_LOCAL: ${{ secrets.VITE_API_LOCAL }}
 
 jobs:
   # Single deploy job since we're just deploying
@@ -61,7 +59,7 @@ jobs:
       - name: Print Environment Variables
         run: |
           echo "VITE_API=$VITE_API"
-          echo "VITE_API_LOCAL=$VITE_API_URL"
+          echo "VITE_API_LOCAL=$VITE_API_LOCAL"
 
       - name: Build
         run: npx nx build web-ui
