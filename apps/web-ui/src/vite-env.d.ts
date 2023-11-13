@@ -1,5 +1,5 @@
 /// <reference types="vite/client" />
 interface ImportMetaEnv {
-  API_BASE_URL: string;
-  API_BASE_URL_LOCAL: string;
+  VITE_API: string;
+  VITE_API_LOCAL: string;
 }
