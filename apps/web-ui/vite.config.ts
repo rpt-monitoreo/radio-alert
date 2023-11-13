@@ -8,6 +8,12 @@ import path from 'path';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig({
+  define: {
+    'process.env': {
+      VITE_API: JSON.stringify(process.env.VITE_API),
+      VITE_API_URL: JSON.stringify(process.env.VITE_API_URL),
+    },
+  },
   cacheDir: '../../node_modules/.vite/web-ui',
 
   server: {
