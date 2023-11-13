@@ -19,6 +19,7 @@ async function bootstrap() {
     AppModule,
     new FastifyAdapter({ logger: true })
   );
+  app.enableCors();
   app.register(compression);
   const globalPrefix = '';
   app.setGlobalPrefix(globalPrefix);
