@@ -14,7 +14,7 @@ function FetchUsers() {
 function PageIni() {
   return (
     <div>
-      <FetchUsers />
+      {/*  <FetchUsers /> */}
       <ParentComponent />
     </div>
   );

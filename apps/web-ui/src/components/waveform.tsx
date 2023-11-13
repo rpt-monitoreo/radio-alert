@@ -17,25 +17,7 @@ const Waveform: React.FC<WaveformProps> = ({ url, onSelection, edit }) => {
   const editRef = useRef(edit);
   const wsRef = useRef<WaveSurfer | null>(null);
 
-  function usePrevious(value: any) {
-    console.log(value);
-
-    const ref = useRef();
-    useEffect(() => {
-      ref.current = value;
-    });
-    return ref.current;
-  }
-
-  const prevUrl = usePrevious(url);
-  const prevOnSelection = usePrevious(onSelection);
-  const prevEdit = usePrevious(edit);
   useEffect(() => {
-    console.log(prevEdit, edit);
-
-    if (prevEdit !== edit) {
-      console.log('edit changed');
-    }
     editRef.current = edit;
     if (wsRef.current) {
       wsRef.current.setOptions({ autoCenter: !edit });
@@ -70,7 +52,7 @@ const Waveform: React.FC<WaveformProps> = ({ url, onSelection, edit }) => {
           fontSize: '18px',
           color: '#2D5B88',
         },
-      }),
+      })
     );
 
     wavesurfer.registerPlugin(
@@ -98,19 +80,17 @@ const Waveform: React.FC<WaveformProps> = ({ url, onSelection, edit }) => {
             },
           }),
         ],
-      } as any),
+      } as any)
     );
     return wavesurfer;
   };
+
   const setStratEnd = useCallback(
     (region: Region) => {
-      if (prevOnSelection !== onSelection) {
-        console.log('onSelection changed');
-      }
       if (!wsRef.current) return null;
       const pos = wsRef.current.getCurrentTime();
       const medio = (region.start + region.end) / 2;
-      if (region.start == 0) {
+      if (region.start === 0) {
         region.setOptions({ start: pos, end: pos + 30 });
       } else if (pos <= medio) {
         region.setOptions({ start: pos });
@@ -119,65 +99,56 @@ const Waveform: React.FC<WaveformProps> = ({ url, onSelection, edit }) => {
       }
       onSelection(region.start, region.end);
     },
-    [onSelection],
+    [onSelection]
   );
 
   useEffect(() => {
-    console.log(prevUrl, url);
+    if (!waveformRef.current) return;
 
-    if (prevUrl !== url) {
-      console.log('url changed');
-    }
+    wsRef.current = createWaveSurfer(url);
 
-    if (waveformRef.current) {
-      console.log('ññ11');
-      if (!waveformRef.current) return;
-
-      wsRef.current = createWaveSurfer(url);
-
-      const wsRegions = wsRef.current.registerPlugin(RegionsPlugin.create());
-      wsRef.current.on('decode', () => {
-        wsRegions.addRegion({
-          start: 0,
-          end: 1,
-          color: 'rgba(180, 180, 180, 0.5)',
-          drag: false,
-          resize: true,
-        });
+    const wsRegions = wsRef.current.registerPlugin(RegionsPlugin.create());
+    wsRef.current.on('decode', () => {
+      wsRegions.addRegion({
+        start: 0,
+        end: 1,
+        color: 'rgba(180, 180, 180, 0.5)',
+        drag: false,
+        resize: true,
       });
-      let touchtime = 0;
-      wsRef.current.on('click', () => {
-        if (!wsRef.current) return;
-        if (touchtime == 0) {
-          // set first click
-          wsRef.current.play();
-          touchtime = new Date().getTime();
-        } else if (new Date().getTime() - touchtime < 800 && editRef.current) {
-          // compare first click to this click and see if they occurred within double click threshold
+    });
+    let touchtime = 0;
+    wsRef.current.on('click', () => {
+      if (!wsRef.current) return;
+      if (touchtime === 0) {
+        // set first click
+        wsRef.current.play();
+        touchtime = new Date().getTime();
+      } else if (new Date().getTime() - touchtime < 800 && editRef.current) {
+        // compare first click to this click and see if they occurred within double click threshold
 
-          // double click occurred
+        // double click occurred
 
-          const region = wsRegions.getRegions()[0];
-          setStratEnd(region);
+        const region = wsRegions.getRegions()[0];
+        setStratEnd(region);
 
-          touchtime = 0;
-        } else {
-          // not a double click so set as a new first click
-          touchtime = new Date().getTime();
-        }
-      });
-      wsRegions.on('region-clicked', (region, e) => {
-        if (!editRef.current) {
-          e.stopPropagation(); // prevent triggering a click on the waveform
-          region.play();
-        }
-      });
+        touchtime = 0;
+      } else {
+        // not a double click so set as a new first click
+        touchtime = new Date().getTime();
+      }
+    });
+    wsRegions.on('region-clicked', (region, e) => {
+      if (!editRef.current) {
+        e.stopPropagation(); // prevent triggering a click on the waveform
+        region.play();
+      }
+    });
 
-      return () => {
-        if (!wsRef.current) return;
-        return wsRef.current.destroy();
-      };
-    }
+    return () => {
+      if (!wsRef.current) return;
+      return wsRef.current.destroy();
+    };
   }, [url, setStratEnd]);
 
   return <div ref={waveformRef} />;
