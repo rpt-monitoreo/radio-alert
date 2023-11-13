@@ -4,8 +4,10 @@ import {
   LogoutOutlined,
   QuestionCircleFilled,
 } from '@ant-design/icons';
-import type { ProSettings } from '@ant-design/pro-components';
+import type { MenuDataItem, ProSettings } from '@ant-design/pro-components';
 import { PageContainer, ProCard, ProLayout } from '@ant-design/pro-components';
+import { SiderMenuProps } from '@ant-design/pro-layout/es/components/SiderMenu/SiderMenu';
+import { GlobalHeaderProps } from '@ant-design/pro-layout/es/components/GlobalHeader';
 import { Button, Dropdown } from 'antd';
 import { useState } from 'react';
 import defaultProps from './_defaultProps';
@@ -28,6 +30,84 @@ function App() {
   const [pathname, setPathname] = useState('/Welcome');
   const [num, setNum] = useState(40);
 
+  function headerTitleRender(
+    logo: React.ReactNode,
+    title: React.ReactNode,
+    props: GlobalHeaderProps
+  ) {
+    const defaultDom = (
+      <button
+        style={{
+          background: 'none',
+          border: 'none',
+          cursor: 'pointer',
+          display: 'flex',
+          alignItems: 'center',
+        }}
+      >
+        {logo}
+        {title}
+      </button>
+    );
+
+    if (
+      typeof window === 'undefined' ||
+      document.body.clientWidth < 1400 ||
+      props.isMobile
+    ) {
+      return defaultDom;
+    }
+
+    return (
+      <>
+        {defaultDom}
+        <MenuCard />
+      </>
+    );
+  }
+
+  function menuFooterRender(props?: SiderMenuProps) {
+    if (props?.collapsed) return undefined;
+
+    return (
+      <div
+        style={{
+          textAlign: 'center',
+          paddingBlockStart: 12,
+        }}
+      >
+        <div>© 2021 Made with love</div>
+        <div>by Ant Design</div>
+      </div>
+    );
+  }
+
+  function menuItemRender(
+    item: MenuDataItem,
+    dom: React.ReactNode,
+    setPathname: React.Dispatch<React.SetStateAction<string>>
+  ) {
+    const handleClick = () => {
+      setPathname(item.path ?? '/welcome');
+    };
+
+    const handleKeyDown = (event: React.KeyboardEvent) => {
+      // Comprueba si la tecla presionada fue "Enter" o "Espacio"
+      if (event.key === 'Enter' || event.key === ' ') {
+        handleClick();
+      }
+    };
+
+    return (
+      <div
+        tabIndex={0} // Hace que el div sea enfocable
+        onClick={handleClick}
+        onKeyDown={handleKeyDown} // Maneja el evento de teclado
+      >
+        {dom}
+      </div>
+    );
+  }
   if (typeof document === 'undefined') {
     return <div />;
   }
@@ -100,49 +180,10 @@ function App() {
           <GithubFilled key="GithubFilled" />,
         ];
       }}
-      headerTitleRender={(logo, title, _) => {
-        const defaultDom = (
-          <a>
-            {logo}
-            {title}
-          </a>
-        );
-        if (typeof window === 'undefined') return defaultDom;
-        if (document.body.clientWidth < 1400) {
-          return defaultDom;
-        }
-        if (_.isMobile) return defaultDom;
-        return (
-          <>
-            {defaultDom}
-            <MenuCard />
-          </>
-        );
-      }}
-      menuFooterRender={(props) => {
-        if (props?.collapsed) return undefined;
-        return (
-          <div
-            style={{
-              textAlign: 'center',
-              paddingBlockStart: 12,
-            }}
-          >
-            <div>© 2021 Made with love</div>
-            <div>by Ant Design</div>
-          </div>
-        );
-      }}
+      headerTitleRender={headerTitleRender}
+      menuFooterRender={menuFooterRender}
       onMenuHeaderClick={(e) => console.log(e)}
-      menuItemRender={(item, dom) => (
-        <div
-          onClick={() => {
-            setPathname(item.path || '/welcome');
-          }}
-        >
-          {dom}
-        </div>
-      )}
+      menuItemRender={(item, dom) => menuItemRender(item, dom, setPathname)}
       {...settings}
     >
       <PageContainer
