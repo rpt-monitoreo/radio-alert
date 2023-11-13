@@ -27,7 +27,6 @@ env:
 jobs:
   # Single deploy job since we're just deploying
   deploy:
-
     runs-on: ubuntu-latest
 
     steps:
@@ -57,6 +56,10 @@ jobs:
 
       - name: Build
         run: npx nx build web-ui
+
+        env:
+          VITE_API: ${{ secrets.VITE_API }}
+          VITE_API_URL: ${{ secrets.VITE_API_URL }}
 
       - name: Setup Pages
         uses: actions/configure-pages@v3
