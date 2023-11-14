@@ -9,6 +9,10 @@
     "jest.config.ts",
     "src/**/*.test.ts",
     "src/**/*.spec.ts",
-    "src/**/*.d.ts"
+    "src/**/*.d.ts",
+    "../web-api-e2e/src/web-api/app/app.controller.spec.ts",
+    "../web-api-e2e/src/web-api/app/app.service.spec.ts",
+    "../web-api-e2e/src/web-api/app/alertas/alertas.controller.spec.ts",
+    "../web-api-e2e/src/web-api/app/alertas/alertas.service.spec.ts"
   ]
 }
