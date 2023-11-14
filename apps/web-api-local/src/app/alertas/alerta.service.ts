@@ -17,8 +17,6 @@ export class AlertaService {
   }
 
   async getAlertas(getAlertasDto: GetAlertasDto) {
-    console.log(this.alertaRepo);
-
     const { fechaInicio, fechaFinal, palabra } = getAlertasDto;
     const findOptions: FindOneOptions<Alertas> = {
       where: {
@@ -29,8 +27,6 @@ export class AlertaService {
         ...(palabra && { palabra }),
       } as unknown as FindOptionsWhere<Alertas>,
     };
-    console.log(findOptions);
-
     return this.alertaRepo.find(findOptions);
   }
 }
