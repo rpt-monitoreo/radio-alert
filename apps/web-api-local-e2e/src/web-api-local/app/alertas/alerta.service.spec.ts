@@ -1,15 +1,15 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { AlertasService } from '../../../../../web-api-local/src/app/alertas/alerta.service';
+import { AlertaService } from '../../../../../web-api-local/src/app/alertas/alerta.service';
 
-describe('AlertasService', () => {
-  let service: AlertasService;
+describe('AlertaService', () => {
+  let service: AlertaService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [AlertasService],
+      providers: [AlertaService],
     }).compile();
 
-    service = module.get<AlertasService>(AlertasService);
+    service = module.get<AlertaService>(AlertaService);
   });
 
   it('should be defined', () => {
