@@ -1,1 +1,1 @@
-export * from './lib/alerta.dto';
+export * from './lib/alerts.dto';

@@ -4,9 +4,9 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AudioModule } from './audio/audio.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { AlertasModule } from './alertas/alerta.module';
+import { AlertasModule } from './alerts/alerts.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { Alertas } from './alertas/alerta.entity';
+import { Alert } from './alerts/alerts.entity';
 
 @Module({
   imports: [
@@ -15,8 +15,8 @@ import { Alertas } from './alertas/alerta.entity';
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => ({
         type: 'mongodb',
-        url: configService.get<string>('MONGODB_URI') + '/monitoreo',
-        entities: [Alertas],
+        url: configService.get<string>('MONGODB_URI') + '/monitoring',
+        entities: [Alert],
         synchronize: true,
       }),
       inject: [ConfigService],

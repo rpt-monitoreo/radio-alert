@@ -1,3 +1,3 @@
 setTimeout(function () {
   process.exit();
-}, 5000);
+}, 8000);
