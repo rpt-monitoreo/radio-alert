@@ -9,4 +9,4 @@ import { Alert } from './alerts.entity';
   controllers: [AlertsController],
   providers: [AlertsService],
 })
-export class AlertasModule {}
+export class AlertsModule {}

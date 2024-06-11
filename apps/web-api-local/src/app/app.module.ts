@@ -4,7 +4,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AudioModule } from './audio/audio.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { AlertasModule } from './alerts/alerts.module';
+import { AlertsModule } from './alerts/alerts.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { Alert } from './alerts/alerts.entity';
 
@@ -23,7 +23,7 @@ import { Alert } from './alerts/alerts.entity';
     }),
 
     AudioModule,
-    AlertasModule,
+    AlertsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

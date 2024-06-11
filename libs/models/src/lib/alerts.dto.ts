@@ -12,5 +12,5 @@ export class GetAlertsDto {
   readonly startDate: string;
   readonly endDate: string;
   readonly madia?: string;
-  readonly client?: string;
+  readonly clientName?: string;
 }

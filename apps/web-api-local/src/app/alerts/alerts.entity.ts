@@ -5,21 +5,36 @@ export class Alert {
   @ObjectIdColumn()
   id: string;
 
-  @CreateDateColumn()
-  date: Date;
-
   @Column()
   text: string;
 
-  @Column()
-  word: string;
+  @CreateDateColumn()
+  date: Date;
+
+  @CreateDateColumn()
+  startTime: Date;
+
+  @CreateDateColumn()
+  endTime: Date;
 
   @Column()
-  station: string;
+  column: string;
 
   @Column()
-  time: string;
+  media: string;
 
   @Column()
-  client: string;
+  words: string[];
+
+  @Column()
+  filePath: string;
+
+  @Column()
+  platform: string;
+
+  @Column()
+  clientName: string;
+
+  @Column()
+  type: string;
 }

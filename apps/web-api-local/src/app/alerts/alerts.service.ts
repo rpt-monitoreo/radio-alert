@@ -17,14 +17,14 @@ export class AlertsService {
   }
 
   async getAlerts(getAlertasDto: GetAlertsDto) {
-    const { startDate, endDate, client } = getAlertasDto;
+    const { startDate, endDate, clientName } = getAlertasDto;
     const findOptions: FindOneOptions<Alert> = {
       where: {
-        date: {
+        endTime: {
           $gte: new Date(startDate + 'T00:00:00.000Z'),
           $lte: new Date(endDate + 'T23:59:59.999Z'),
         },
-        ...(client && { client }),
+        ...(clientName && { clientName }),
       } as unknown as FindOptionsWhere<Alert>,
     };
     return this.alertsRepo.find(findOptions);
@@ -32,22 +32,29 @@ export class AlertsService {
 
   async getValidDates(getAlertsDto: Partial<GetAlertsDto>) {
     const getAlerts = getAlertsDto || {};
-    const { client } = getAlerts;
+    const { clientName } = getAlerts;
     const query: FindOneOptions<Alert> = {
-      where: { ...(client && { client }) },
+      where: { ...(clientName && { clientName }) },
     };
     // Get the first document by ascending order of date
     const min = await this.alertsRepo.findOne({
       ...query,
-      order: { date: 'ASC' },
+      order: { endTime: 'ASC' },
     });
 
     // Get the last document by descending order of date
     const max = await this.alertsRepo.findOne({
       ...query,
-      order: { date: 'DESC' },
+      order: { endTime: 'DESC' },
     });
 
-    return { minDate: min.date, maxDate: max.date };
+    return {
+      minDate: this.getDate(min.endTime),
+      maxDate: this.getDate(max.endTime),
+    };
+  }
+
+  getDate(date: Date): string {
+    return date.toISOString().split('T')[0];
   }
 }
