@@ -8,11 +8,11 @@ import { NestFactory } from '@nestjs/core';
 
 import { AppModule } from './app/app.module';
 
+import compression from '@fastify/compress';
 import {
   FastifyAdapter,
   NestFastifyApplication,
 } from '@nestjs/platform-fastify';
-import compression from '@fastify/compress';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestFastifyApplication>(
@@ -24,7 +24,7 @@ async function bootstrap() {
   const globalPrefix = '';
   app.setGlobalPrefix(globalPrefix);
   const port = process.env.PORT || 3000;
-  await app.listen(port, '0.0.0.0');
+  await app.listen(port); //, '0.0.0.0');
 
   Logger.log(
     `🚀 Application is running on: http://localhost:${port}/${globalPrefix}`
