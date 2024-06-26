@@ -5,6 +5,7 @@ import * as firefox from 'selenium-webdriver/firefox';
 @Injectable()
 export class AppService {
   async getData(): Promise<{ message: string }> {
+    return { message: 'Hello API 1' };
     // Set the path to the Firefox profile directory
     const profilePath =
       'C:/Users/juanb/AppData/Roaming/Mozilla/Firefox/Profiles/7dc6a3mu.bing';

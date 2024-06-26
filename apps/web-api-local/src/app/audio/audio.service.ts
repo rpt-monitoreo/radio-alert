@@ -9,7 +9,7 @@ import stream from 'stream';
 export class AudioService {
   async getAudioSnippet(): Promise<stream.Readable> {
     const filePath = path.resolve(
-      'C:/Users/juanb/Documents/RADIO/radio-vlc/monitorear/2023/11/6/BlueRadio/BlueRadio_2023-11-06_16-03-30.463924.mp3'
+      'C:/Radio/2024/6/25/BluBucaramanga/BluBucaramanga_2024-06-25_00-00-20.mp3'
     );
     const outputPath = path.resolve('./output.mp3');
 
@@ -21,13 +21,13 @@ export class AudioService {
       });
     });
 
-    // Extract the last 30 seconds of the audio file
+    // Extract the last # seconds of the audio file
     await new Promise<fs.ReadStream>((resolve, reject) => {
       ffmpeg(filePath)
-        .setStartTime(duration - 1800)
+        .setStartTime(duration - 1800) //30min
         .setDuration(1800)
-        .audioBitrate(16) // Lower bitrate Reduce tamaño archivo
-        .audioFrequency(8000) // Lower sample rate Reduce el tiempo
+        .audioBitrate(16) // Lower bitrate Reduce file size
+        .audioFrequency(8000) // Lower sample rate reduce elapsed time
         .audioChannels(1) // Convert to mono
         .outputOptions('-preset ultrafast')
         .audioCodec('libmp3lame')

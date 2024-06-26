@@ -13,20 +13,17 @@ export default {
         path: '/welcome',
         name: 'Bienvenido',
         icon: <SmileFilled />,
-        component: './Welcome',
       },
       {
         path: '/admin',
         name: 'Admin',
         icon: <CrownFilled />,
         access: 'canAdmin',
-        component: './Admin',
         routes: [
           {
             path: '/admin/sub-page1',
             name: 'admin sub-page1',
             icon: 'https://gw.alipayobjects.com/zos/antfincdn/upvrAjAPQX/Logo_Tech%252520UI.svg',
-            component: './Welcome',
           },
         ],
       },
@@ -34,7 +31,6 @@ export default {
         name: 'Lista',
         icon: <TabletFilled />,
         path: '/list',
-        component: './ListTableList',
         routes: [
           {
             path: '/list/sub-page',
@@ -45,7 +41,6 @@ export default {
                 path: 'sub-sub-page1',
                 name: 'sub-sub-page1',
                 icon: <CrownFilled />,
-                component: './Welcome',
               },
             ],
           },
@@ -58,7 +53,24 @@ export default {
       },
     ],
   },
-  location: {
-    pathname: '/',
-  },
+  bgLayoutImgList: [
+    {
+      src: 'https://img.alicdn.com/imgextra/i2/O1CN01O4etvp1DvpFLKfuWq_!!6000000000279-2-tps-609-606.png',
+      left: 85,
+      bottom: 100,
+      height: '303px',
+    },
+    {
+      src: 'https://img.alicdn.com/imgextra/i2/O1CN01O4etvp1DvpFLKfuWq_!!6000000000279-2-tps-609-606.png',
+      bottom: -68,
+      right: -45,
+      height: '303px',
+    },
+    {
+      src: 'https://img.alicdn.com/imgextra/i3/O1CN018NxReL1shX85Yz6Cx_!!6000000005798-2-tps-884-496.png',
+      bottom: 0,
+      left: 0,
+      width: '331px',
+    },
+  ],
 };
