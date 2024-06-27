@@ -7,7 +7,7 @@ import {
   MongoRepository,
 } from 'typeorm';
 import { Alert } from './alerts.entity';
-import { GetAlertsDto } from '@radio-alert/models';
+import { GetAlertsDto, ValidDatesDto } from '@radio-alert/models';
 
 @Injectable()
 export class AlertsService {
@@ -17,7 +17,17 @@ export class AlertsService {
   }
 
   async getAlerts(getAlertasDto: GetAlertsDto) {
-    const { startDate, endDate, clientName } = getAlertasDto;
+    console.log('getAlertasDto', getAlertasDto);
+
+    if (!getAlertasDto) {
+      throw new Error('getAlertasDto is undefined');
+    }
+    const { startDate = '', endDate = '', clientName = '' } = getAlertasDto;
+
+    if (!startDate || !endDate) {
+      throw new Error('startDate and endDate are required');
+    }
+
     const findOptions: FindOneOptions<Alert> = {
       where: {
         endTime: {
@@ -30,7 +40,9 @@ export class AlertsService {
     return this.alertsRepo.find(findOptions);
   }
 
-  async getValidDates(getAlertsDto: Partial<GetAlertsDto>) {
+  async getValidDates(
+    getAlertsDto: Partial<GetAlertsDto>
+  ): Promise<ValidDatesDto> {
     const getAlerts = getAlertsDto || {};
     const { clientName } = getAlerts;
     const query: FindOneOptions<Alert> = {

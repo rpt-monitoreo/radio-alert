@@ -10,8 +10,8 @@ export default {
     path: '/',
     routes: [
       {
-        path: '/welcome',
-        name: 'Bienvenido',
+        path: '/alerts',
+        name: 'Alertas',
         icon: <SmileFilled />,
       },
       {

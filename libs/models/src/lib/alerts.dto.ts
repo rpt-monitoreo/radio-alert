@@ -1,16 +1,24 @@
 export class AlertDto {
-  readonly date: Date;
+  readonly id: string;
   readonly text: string;
-  readonly word: string;
-  readonly platform: string;
-  readonly time: string;
-  readonly client: string;
+  readonly startTime: Date;
+  readonly endTime: Date;
   readonly madia: string;
+  readonly words: string[];
+  readonly filePath: string;
+  readonly platform: string;
+  readonly clientName: string;
+  readonly type: string;
 }
 
 export class GetAlertsDto {
-  readonly startDate: string;
-  readonly endDate: string;
+  readonly startDate?: string;
+  readonly endDate?: string;
   readonly madia?: string;
   readonly clientName?: string;
+}
+
+export class ValidDatesDto {
+  readonly minDate: string;
+  readonly maxDate: string;
 }
