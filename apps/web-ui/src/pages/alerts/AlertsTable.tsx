@@ -167,6 +167,7 @@ const AlertsTable: React.FC<AlertsTableProps> = ({ alerts }) => {
       dataIndex: 'filePath',
       key: 'filePath',
       ellipsis: true,
+      width: '30%',
     },
   ];
 
