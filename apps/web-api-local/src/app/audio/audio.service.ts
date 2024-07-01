@@ -8,9 +8,9 @@ import stream from 'stream';
 
 @Injectable()
 export class AudioService {
-  async getAudioSnippet(getFileDto: GetFileDto): Promise<{ file: stream.Readable; startSeconds: number }> {
+  async createAudioSegment(getFileDto: GetFileDto): Promise<number> {
     const filePath = path.resolve(getFileDto.filePath);
-    const outputPath = path.resolve('./output.mp3');
+    const outputPath = path.resolve(`./audio/${getFileDto.output}.mp3`);
 
     const fileName = path.basename(filePath);
     const parts = fileName.split('_');
@@ -21,15 +21,6 @@ export class AudioService {
     const endSeconds = (endTime.getTime() - fileTime.getTime()) / 1000;
     let startSeconds = 0;
     if (endSeconds > getFileDto.duration / 2) startSeconds = endSeconds - getFileDto.duration / 2;
-    // Get the duration of the audio file
-    const duration = await new Promise<number>((resolve, reject) => {
-      ffmpeg.ffprobe(filePath, (err, metadata) => {
-        if (err) reject(new Error(err));
-        else resolve(metadata.format.duration);
-      });
-    });
-
-    console.log(`Duration: ${duration}`);
 
     // Extract the last # seconds of the audio file
     await new Promise<fs.ReadStream>((resolve, reject) => {
@@ -53,7 +44,54 @@ export class AudioService {
         .run();
     });
 
-    const file = fs.createReadStream(outputPath);
-    return { file, startSeconds };
+    return startSeconds;
+  }
+
+  async getAudioFileByName(filename: string): Promise<stream.Readable | null> {
+    const filePath = path.resolve(`./audio/${filename}.mp3`);
+    if (!fs.existsSync(filePath)) return null;
+    try {
+      return fs.createReadStream(filePath);
+    } catch (error) {
+      throw new Error(error);
+    }
+  }
+
+  /**
+   * Deletes an audio file by its name.
+   *
+   * @param filename The name of the file to delete.
+   * @returns A promise that resolves to true if the file was successfully deleted, or false if the file was not found.
+   */
+  async deleteAudioFileByName(filename: string): Promise<boolean> {
+    const filePath = path.resolve(`./audio/${filename}.mp3`);
+
+    try {
+      await fs.promises.unlink(filePath); // Use await with fs.promises.unlink
+      return true; // File successfully deleted
+    } catch (error) {
+      if (error.code === 'ENOENT') {
+        // File does not exist
+        return false;
+      } else {
+        // Other errors, rethrow or handle as needed
+        throw error;
+      }
+    }
+  }
+
+  /**
+   * Gets the duration of an audio file using ffprobe from fluent-ffmpeg.
+   *
+   * @param filePath The path to the audio file.
+   * @returns A promise that resolves with the duration of the audio file in seconds.
+   */
+  async getAudioDuration(filePath: string): Promise<number> {
+    return new Promise<number>((resolve, reject) => {
+      ffmpeg.ffprobe(filePath, (err, metadata) => {
+        if (err) reject(new Error(err));
+        else resolve(metadata.format.duration);
+      });
+    });
   }
 }
