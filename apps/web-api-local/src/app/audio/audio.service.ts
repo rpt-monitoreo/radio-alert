@@ -1,6 +1,6 @@
 // audio.service.ts
 import { Injectable } from '@nestjs/common';
-import { CreateFileDto } from '@radio-alert/models';
+import { CreateFileDto, getDateFromFile } from '@radio-alert/models';
 import ffmpeg from 'fluent-ffmpeg';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -10,42 +10,48 @@ import { rimraf } from 'rimraf';
 
 @Injectable()
 export class AudioService {
-  async createAudioSegment(createFileDto: CreateFileDto): Promise<number> {
+  async createAudioSegment(createFileDto: CreateFileDto): Promise<{ startSeconds: number; duration: number }> {
     const filePath = path.resolve(createFileDto.filePath);
     const outputPath = path.resolve(`./audioFiles/${createFileDto.output}.mp3`);
-    let startSecond = 0;
+    let startSeconds = 0;
     if (createFileDto.endTime) {
-      const fileName = path.basename(filePath);
-      const parts = fileName.split('_');
-      if (parts.length < 3) throw new Error('Invalid file name format.');
-
-      const fileTime = new Date(`${parts[1]}T${parts[2].split('.')[0].replace(/-/g, ':')}.000Z`);
+      const fileTime = getDateFromFile(filePath);
       const endTime = new Date(createFileDto.endTime);
       const endSeconds = (endTime.getTime() - fileTime.getTime()) / 1000;
 
-      if (endSeconds > createFileDto.duration / 2) startSecond = endSeconds - createFileDto.duration / 2;
+      if (endSeconds > createFileDto.duration / 2) startSeconds = endSeconds - createFileDto.duration / 2;
     } else {
-      startSecond = createFileDto.startSecond;
+      startSeconds = createFileDto.startSecond;
     }
 
-    if ((await this.checkFileExists(outputPath)) && outputPath.includes('segment')) return startSecond;
-    console.log('--------------fragment', createFileDto.duration, 'startSecond', startSecond, 'outputPath', outputPath);
+    if ((await this.checkFileExists(outputPath)) && outputPath.includes('segment')) {
+      ffmpeg.ffprobe(outputPath, (_, metadata) => {
+        const duration = metadata.format.duration;
+        return { startSeconds, duration };
+      });
+    }
 
     // Extract the last # seconds of the audio file
-    await new Promise<fs.ReadStream>((resolve, reject) => {
+    const duration = await new Promise<number>((resolve, reject) => {
       ffmpeg(filePath)
-        .setStartTime(startSecond)
+        .setStartTime(startSeconds)
         .setDuration(createFileDto.duration)
-        .audioBitrate(16) // Lower bitrate Reduce file size
-        .audioFrequency(8000) // Lower sample rate reduce elapsed time
+        .audioBitrate(outputPath.includes('segment') ? 16 : 32) // Lower bitrate Reduce file size
+        .audioFrequency(outputPath.includes('segment') ? 8000 : 16000) // Lower sample rate reduce elapsed time
         .audioChannels(1) // Convert to mono
         .outputOptions('-preset ultrafast')
         .audioCodec('libmp3lame')
         .toFormat('mp3')
         .output(outputPath)
         .on('end', function () {
-          const file = fs.createReadStream(outputPath);
-          resolve(file);
+          // Usar ffprobe para obtener la duración del archivo procesado
+          ffmpeg.ffprobe(outputPath, (err, metadata) => {
+            if (err) {
+              reject(new Error(err));
+            } else {
+              resolve(metadata.format.duration);
+            }
+          });
         })
         .on('error', function (err) {
           reject(new Error(err));
@@ -53,7 +59,7 @@ export class AudioService {
         .run();
     });
 
-    return startSecond;
+    return { startSeconds: startSeconds, duration };
   }
 
   async getAudioFileByName(filename: string): Promise<stream.Readable | null> {

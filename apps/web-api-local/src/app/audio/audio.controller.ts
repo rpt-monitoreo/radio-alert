@@ -10,9 +10,9 @@ export class AudioController {
   @Post('createFile')
   async getAudio(@Body() createFileDto: CreateFileDto, @Res() res: FastifyReply): Promise<void> {
     try {
-      const startSeconds = await this.audioService.createAudioSegment(createFileDto);
+      const { startSeconds, duration } = await this.audioService.createAudioSegment(createFileDto);
       res.header('Content-Type', 'application/json');
-      res.send({ startSeconds });
+      res.send({ startSeconds, duration });
     } catch (err) {
       res.status(HttpStatus.INTERNAL_SERVER_ERROR).send({ error: err.message });
     }
