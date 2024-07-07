@@ -1,11 +1,13 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import dayjs from 'dayjs';
-import { AlertDto } from '@radio-alert/models';
-import { SearchOutlined } from '@ant-design/icons';
+import { AlertDto, CreateFileDto } from '@radio-alert/models';
+import { SearchOutlined, EditOutlined } from '@ant-design/icons';
 import type { InputRef, TableColumnsType, TableColumnType, TableProps } from 'antd';
-import { Button, Input, Space, Table } from 'antd';
+import { Button, Input, Modal, Space, Table } from 'antd';
 import type { FilterDropdownProps } from 'antd/es/table/interface';
 import Highlighter from 'react-highlight-words';
+import { useCreateFile, useDeleteFile } from '../../services/AudioService';
+import AudioEdit from '../audio/AudioEdit';
 
 // Función para formatear la fecha asumiendo que es UTC
 const getDateOffset = (dateString: string | Date | dayjs.Dayjs) => {
@@ -22,10 +24,21 @@ type DataIndex = keyof AlertDto;
 const AlertsTable: React.FC<AlertsTableProps> = ({ alerts }) => {
   const [searchText, setSearchText] = useState('');
   const [searchedColumn, setSearchedColumn] = useState('');
+  const [modalOpen, setModalOpen] = useState(false);
+  const [createFetch, setCreateFetch] = useState(false);
+  const [deleteFetch, setDeleteFetch] = useState(false);
+  const [createFileDto, setCreateFileDto] = useState<CreateFileDto>(new CreateFileDto());
+  const [audioEditKey, setAudioEditKey] = useState(0);
+
+  const { data: createData, isLoading: createLoading, error: createError } = useCreateFile(createFileDto, createFetch);
+  const { data: deleteData, error: deleteError } = useDeleteFile(createFileDto?.output, deleteFetch);
+
+  useEffect(() => {
+    setDeleteFetch(false);
+  }, [deleteData, deleteError]);
+
   const searchInput = useRef<InputRef>(null);
-  const tableProps: TableProps<AlertDto> = {
-    size: 'small',
-  };
+
   const handleSearch = (selectedKeys: string[], confirm: FilterDropdownProps['confirm'], dataIndex: DataIndex) => {
     confirm();
     setSearchText(selectedKeys[0]);
@@ -108,6 +121,25 @@ const AlertsTable: React.FC<AlertsTableProps> = ({ alerts }) => {
       ),
   });
 
+  const handleClick = (alert: AlertDto) => {
+    setAudioEditKey(prevKey => prevKey + 1);
+    setCreateFileDto({
+      filePath: alert.filePath,
+      endTime: alert.endTime,
+      output: `segment_${alert.id}`,
+      duration: 1800,
+      id: alert.id,
+    });
+    setCreateFetch(true);
+    setModalOpen(true);
+  };
+
+  const handleClose = () => {
+    setCreateFetch(false);
+    setModalOpen(false);
+    // setDeleteFetch(true);
+  };
+
   if (!alerts) return null;
   const columns: TableColumnsType<AlertDto> = [
     {
@@ -162,16 +194,56 @@ const AlertsTable: React.FC<AlertsTableProps> = ({ alerts }) => {
       ellipsis: true,
       width: '40%',
     },
-    {
+    /* {
       title: 'Archivo',
       dataIndex: 'filePath',
       key: 'filePath',
       ellipsis: true,
       width: '30%',
+    }, */
+    {
+      title: 'Editar',
+      dataIndex: 'filePath',
+      key: 'filePath',
+      ellipsis: true,
+      render: (_, record) => <Button icon={<EditOutlined />} onClick={() => handleClick(record)}></Button>,
     },
   ];
 
-  return <Table {...tableProps} columns={columns} dataSource={alerts} pagination={{ pageSize: 20 }} />;
+  const tableProps: TableProps<AlertDto> = {
+    size: 'small',
+    rowKey: 'id',
+    columns: columns,
+    dataSource: alerts,
+    pagination: { pageSize: 20 },
+  };
+
+  return (
+    <>
+      <Table {...tableProps} />
+      <Modal
+        title='Vertically centered modal dialog'
+        centered
+        open={modalOpen}
+        loading={createLoading}
+        onCancel={() => handleClose()}
+        onClose={() => handleClose()}
+        destroyOnClose={true}
+        width='100vw'
+      >
+        {createData && !createError ? (
+          <AudioEdit
+            key={audioEditKey}
+            fileName={createFileDto.output}
+            startSeconds={createData.startSeconds}
+            id={createFileDto?.id}
+          ></AudioEdit>
+        ) : (
+          <div>Error creating file</div>
+        )}
+      </Modal>
+    </>
+  );
 };
 
 export default AlertsTable;

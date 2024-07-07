@@ -5,7 +5,7 @@ const SearchInput = () => {
   const { token } = theme.useToken();
   return (
     <div
-      key="SearchOutlined"
+      key='SearchOutlined'
       aria-hidden
       style={{
         display: 'flex',
@@ -30,8 +30,8 @@ const SearchInput = () => {
             }}
           />
         }
-        placeholder="Plan de búsqueda"
-        bordered={false}
+        placeholder='Plan de búsqueda'
+        variant={'borderless'}
       />
       <PlusCircleFilled
         style={{

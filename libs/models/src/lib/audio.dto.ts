@@ -1,7 +1,8 @@
-export class GetFileDto {
+export class CreateFileDto {
   readonly filePath: string;
-  readonly startTime: string;
-  readonly endTime: string;
+  readonly endTime?: string;
+  readonly startSecond?: number;
   readonly output: string;
   readonly duration: number;
+  readonly id: string;
 }

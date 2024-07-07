@@ -1,8 +1,8 @@
 export class AlertDto {
   readonly id: string;
   readonly text: string;
-  readonly startTime: Date;
-  readonly endTime: Date;
+  readonly startTime: string;
+  readonly endTime: string;
   readonly madia: string;
   readonly words: string[];
   readonly filePath: string;

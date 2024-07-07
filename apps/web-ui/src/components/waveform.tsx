@@ -138,8 +138,13 @@ const Waveform: React.FC<WaveformProps> = ({ url, onSelection, edit }) => {
         touchtime = new Date().getTime();
       }
     });
+
+    wsRegions.on('region-updated', region => {
+      setStratEnd(region);
+    });
+
     wsRegions.on('region-clicked', (region, e) => {
-      if (!editRef.current) {
+      if (editRef.current) {
         e.stopPropagation(); // prevent triggering a click on the waveform
         region.play();
       }
