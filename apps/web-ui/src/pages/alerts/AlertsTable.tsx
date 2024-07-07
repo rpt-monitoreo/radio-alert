@@ -125,6 +125,7 @@ const AlertsTable: React.FC<AlertsTableProps> = ({ alerts }) => {
     setAudioEditKey(prevKey => prevKey + 1);
     setCreateFileDto({
       filePath: alert.filePath,
+      startTime: alert.startTime,
       endTime: alert.endTime,
       output: `segment_${alert.id}`,
       duration: 1800,
@@ -153,6 +154,7 @@ const AlertsTable: React.FC<AlertsTableProps> = ({ alerts }) => {
       onFilter: (value, record) => record.clientName.includes(value as string),
       sorter: (a, b) => a.clientName.length - b.clientName.length,
       ellipsis: true,
+      width: '100px',
     },
     {
       title: 'Plataforma',
@@ -161,6 +163,7 @@ const AlertsTable: React.FC<AlertsTableProps> = ({ alerts }) => {
       ...getColumnSearchProps('platform'),
       sorter: (a, b) => a.platform.length - b.platform.length,
       ellipsis: true,
+      width: '150px',
     },
     {
       title: 'Fecha',
@@ -169,6 +172,7 @@ const AlertsTable: React.FC<AlertsTableProps> = ({ alerts }) => {
       //sorter: (a, b) => a.startTime.getTime() - b.startTime.getTime(),
       render: text => getDateOffset(text).format('DD/MM/YY'),
       ellipsis: true,
+      width: '100px',
     },
     {
       title: 'Hora',
@@ -177,6 +181,7 @@ const AlertsTable: React.FC<AlertsTableProps> = ({ alerts }) => {
       //sorter: (a, b) => a.startTime.getTime() - b.startTime.getTime(),
       render: text => getDateOffset(text).format('HH:mm:ss'),
       ellipsis: true,
+      width: '100px',
     },
     {
       title: 'Palabras',
@@ -185,14 +190,55 @@ const AlertsTable: React.FC<AlertsTableProps> = ({ alerts }) => {
       ...getColumnSearchProps('text'),
       render: words => words.join(', '),
       ellipsis: true,
+      width: '100px',
     },
     {
       title: 'Texto',
       dataIndex: 'text',
       key: 'text',
       ...getColumnSearchProps('text'),
-      ellipsis: true,
-      width: '40%',
+      render: (text, record) => {
+        // Function to check and transform text
+        const transformText = (inputText: string) => {
+          let transformedText = '';
+          let currentIndex = 0;
+
+          while (currentIndex < inputText.length) {
+            let found = false;
+
+            // Sort record.words by length in descending order to prioritize longer phrases
+            const sortedWords = [...record.words].sort((a, b) => b.length - a.length);
+
+            for (const phrase of sortedWords) {
+              // Check if the current segment of text starts with the phrase
+              if (inputText.slice(currentIndex).toLowerCase().startsWith(phrase.toLowerCase())) {
+                // Transform the phrase to uppercase and apply bold style
+                transformedText += `<strong style="text-transform: uppercase;">${inputText.slice(
+                  currentIndex,
+                  currentIndex + phrase.length
+                )}</strong>`;
+                currentIndex += phrase.length;
+                found = true;
+                break; // Break after the first match to avoid overlapping transformations
+              }
+            }
+
+            // If no matching phrase is found, move to the next character
+            if (!found) {
+              transformedText += inputText[currentIndex];
+              currentIndex++;
+            }
+          }
+
+          return transformedText;
+        };
+
+        // Apply the transformation
+        const finalTransformedText = transformText(text);
+
+        // Return the transformed text as HTML
+        return <div style={{ whiteSpace: 'normal' }} dangerouslySetInnerHTML={{ __html: finalTransformedText }} />;
+      },
     },
     /* {
       title: 'Archivo',
@@ -207,6 +253,7 @@ const AlertsTable: React.FC<AlertsTableProps> = ({ alerts }) => {
       key: 'filePath',
       ellipsis: true,
       render: (_, record) => <Button icon={<EditOutlined />} onClick={() => handleClick(record)}></Button>,
+      width: '60px',
     },
   ];
 
@@ -234,9 +281,9 @@ const AlertsTable: React.FC<AlertsTableProps> = ({ alerts }) => {
         {createData && !createError ? (
           <AudioEdit
             key={audioEditKey}
-            fileName={createFileDto.output}
-            startSeconds={createData.startSeconds}
-            id={createFileDto?.id}
+            createFileDtoIn={createFileDto}
+            segmentStartSeconds={createData.startSeconds}
+            segmentDuration={createData.duration}
           ></AudioEdit>
         ) : (
           <div>Error creating file</div>

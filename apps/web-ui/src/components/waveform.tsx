@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React, { useCallback, useEffect, useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 import WaveSurfer from 'wavesurfer.js';
-import RegionsPlugin, { Region } from 'wavesurfer.js/dist/plugins/regions.js';
+import RegionsPlugin from 'wavesurfer.js/dist/plugins/regions.js';
 
 import TimelinePlugin from 'wavesurfer.js/dist/plugins/timeline.js';
 import Minimap from 'wavesurfer.js/dist/plugins/minimap.js';
@@ -9,20 +9,11 @@ import Minimap from 'wavesurfer.js/dist/plugins/minimap.js';
 interface WaveformProps {
   url: string;
   onSelection: (start: number, end: number) => void;
-  edit: boolean;
 }
 
-const Waveform: React.FC<WaveformProps> = ({ url, onSelection, edit }) => {
+const Waveform: React.FC<WaveformProps> = ({ url, onSelection }) => {
   const waveformRef = useRef<HTMLDivElement | null>(null);
-  const editRef = useRef(edit);
   const wsRef = useRef<WaveSurfer | null>(null);
-
-  useEffect(() => {
-    editRef.current = edit;
-    if (wsRef.current) {
-      wsRef.current.setOptions({ autoCenter: !edit });
-    }
-  }, [edit]);
 
   const createWaveSurfer = (url: string) => {
     const wavesurfer = WaveSurfer.create({
@@ -55,7 +46,7 @@ const Waveform: React.FC<WaveformProps> = ({ url, onSelection, edit }) => {
       })
     );
 
-    wavesurfer.registerPlugin(
+    const minimap = wavesurfer.registerPlugin(
       Minimap.create({
         container: waveformRef.current,
         height: 20,
@@ -82,25 +73,12 @@ const Waveform: React.FC<WaveformProps> = ({ url, onSelection, edit }) => {
         ],
       } as any)
     );
+
+    minimap.addEventListener('interaction', () => {
+      wavesurfer.play();
+    });
     return wavesurfer;
   };
-
-  const setStratEnd = useCallback(
-    (region: Region) => {
-      if (!wsRef.current) return null;
-      const pos = wsRef.current.getCurrentTime();
-      const medio = (region.start + region.end) / 2;
-      if (region.start === 0) {
-        region.setOptions({ start: pos, end: pos + 30 });
-      } else if (pos <= medio) {
-        region.setOptions({ start: pos });
-      } else {
-        region.setOptions({ start: region.start, end: pos });
-      }
-      onSelection(region.start, region.end);
-    },
-    [onSelection]
-  );
 
   useEffect(() => {
     if (!waveformRef.current) return;
@@ -111,50 +89,58 @@ const Waveform: React.FC<WaveformProps> = ({ url, onSelection, edit }) => {
     wsRef.current.on('decode', () => {
       wsRegions.addRegion({
         start: 0,
-        end: 1,
+        content: '1',
         color: 'rgba(180, 180, 180, 0.5)',
-        drag: false,
-        resize: true,
+      });
+      wsRegions.addRegion({
+        start: 0,
+        content: '2',
+        color: 'rgba(180, 180, 180, 0.5)',
       });
     });
     let touchtime = 0;
+    let currentTime = 0;
     wsRef.current.on('click', () => {
       if (!wsRef.current) return;
       if (touchtime === 0) {
         // set first click
         wsRef.current.play();
         touchtime = new Date().getTime();
-      } else if (new Date().getTime() - touchtime < 800 && editRef.current) {
+        currentTime = wsRef.current.getCurrentTime();
+      } else if (new Date().getTime() - touchtime < 800 && currentTime === wsRef.current.getCurrentTime()) {
         // compare first click to this click and see if they occurred within double click threshold
-
+        const pos = wsRef.current.getCurrentTime();
         // double click occurred
 
-        const region = wsRegions.getRegions()[0];
-        setStratEnd(region);
+        const region1 = wsRegions.getRegions()[0];
+        const region2 = wsRegions.getRegions()[1];
+        const shouldUpdateRegion1 =
+          region1.start === 0 || (region2.start !== 0 && Math.abs(region1.start - pos) < Math.abs(region2.start - pos));
+
+        if (shouldUpdateRegion1) {
+          region1.setOptions({ start: pos });
+        } else if (region2.start === 0 || !shouldUpdateRegion1) {
+          region2.setOptions({ start: pos });
+        }
+        onSelection(region1.start, region2.start);
 
         touchtime = 0;
       } else {
         // not a double click so set as a new first click
         touchtime = new Date().getTime();
+        currentTime = wsRef.current.getCurrentTime();
       }
     });
 
     wsRegions.on('region-updated', region => {
-      setStratEnd(region);
-    });
-
-    wsRegions.on('region-clicked', (region, e) => {
-      if (editRef.current) {
-        e.stopPropagation(); // prevent triggering a click on the waveform
-        region.play();
-      }
+      onSelection(region.start, region.end);
     });
 
     return () => {
       if (!wsRef.current) return;
       return wsRef.current.destroy();
     };
-  }, [url, setStratEnd]);
+  }, [url, onSelection]);
 
   return <div ref={waveformRef} />;
 };

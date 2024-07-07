@@ -1,17 +1,18 @@
 import { useCallback, useEffect, useState } from 'react';
 import Waveform from '../../components/waveform';
-import { Button, Switch } from 'antd';
+import { Button } from 'antd';
 import { useCreateFile } from '../../services/AudioService';
-import { CreateFileDto } from '@radio-alert/models';
+import { CreateFileDto, getDateFromFile } from '@radio-alert/models';
+import BarComponent from '../../components/Bar';
 
 interface AudioEditProps {
-  fileName: string;
-  startSeconds: number;
-  id: string;
+  createFileDtoIn: CreateFileDto;
+  segmentStartSeconds: number;
+  segmentDuration: number;
 }
-const AudioEdit: React.FC<AudioEditProps> = ({ fileName, startSeconds, id }) => {
-  const url = `${import.meta.env.VITE_API_LOCAL}audio/fetchByName/${fileName}`;
-  const [readonly, setReadonly] = useState(false);
+const AudioEdit: React.FC<AudioEditProps> = ({ createFileDtoIn, segmentStartSeconds, segmentDuration }) => {
+  const url = `${import.meta.env.VITE_API_LOCAL}audio/fetchByName/${createFileDtoIn.output}`;
+
   const [createFetch, setCreateFetch] = useState(false);
   const [createFileDto, setCreateFileDto] = useState<CreateFileDto>(new CreateFileDto());
   const [waveformUrl, setWaveformUrl] = useState('');
@@ -20,18 +21,34 @@ const AudioEdit: React.FC<AudioEditProps> = ({ fileName, startSeconds, id }) => 
 
   const onSelection = useCallback(
     (start: number, end: number) => {
-      console.log(`Selected region from ${start} to ${end}`);
       setCreateFileDto(prevCreateFileDto => ({
         ...prevCreateFileDto,
-        filePath: `./audioFiles/${fileName}.mp3`,
-        startSecond: startSeconds + start,
-        output: `fragment_${id}`,
+        filePath: createFileDtoIn.filePath,
+        startSecond: segmentStartSeconds + start,
+        output: `fragment_${createFileDtoIn.id}`,
         duration: end - start,
-        id,
+        id: createFileDtoIn.id,
       }));
     },
-    [fileName, id, startSeconds]
+    [createFileDtoIn, segmentStartSeconds]
   );
+
+  const calculatePositions = () => {
+    const fileTime = getDateFromFile(createFileDtoIn.filePath);
+
+    const startTime = new Date(createFileDtoIn.startTime ?? '');
+
+    const endTime = new Date(createFileDtoIn.endTime ?? '');
+    const startSecond = (startTime.getTime() - fileTime.getTime()) / 1000 - segmentStartSeconds + 10;
+    const endSecond = (endTime.getTime() - fileTime.getTime()) / 1000 - segmentStartSeconds + 10;
+
+    const startPosition = (startSecond * 100) / segmentDuration;
+    const endPosition = (endSecond * 100) / segmentDuration;
+    return { startPosition, endPosition };
+  };
+
+  // Dentro de tu componente, antes del return
+  const { startPosition, endPosition } = calculatePositions();
 
   useEffect(() => {
     if (createData) {
@@ -41,33 +58,24 @@ const AudioEdit: React.FC<AudioEditProps> = ({ fileName, startSeconds, id }) => 
 
   return url ? (
     <div>
-      <Waveform url={url} onSelection={onSelection} edit={readonly} />
+      <Waveform url={url} onSelection={onSelection} />
+      <BarComponent startPosition={startPosition} endPosition={endPosition} />
 
-      <Switch
-        style={{
-          marginBlockEnd: 16,
-        }}
-        checked={readonly}
-        checkedChildren='Editar'
-        unCheckedChildren='Lectura'
-        onChange={setReadonly}
-      />
       <Button
         type='primary'
         onClick={() => {
           setCreateFetch(true);
         }}
         size='small'
-        disabled={!readonly}
       >
         Obtener
       </Button>
 
       {waveformUrl ? (
-        <>
-          <Waveform url={waveformUrl} onSelection={onSelection} edit={true} />
-          <div></div>
-        </>
+        <audio src={waveformUrl} controls>
+          <track kind='captions' src='captions.vtt' label='Captions' />
+          Tu navegador no soporta el elemento de audio.
+        </audio>
       ) : null}
     </div>
   ) : (
