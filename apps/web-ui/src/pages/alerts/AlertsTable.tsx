@@ -141,6 +141,12 @@ const AlertsTable: React.FC<AlertsTableProps> = ({ alerts }) => {
     // setDeleteFetch(true);
   };
 
+  useEffect(() => {
+    if (!createLoading) {
+      setCreateFetch(false);
+    }
+  }, [createLoading]);
+
   if (!alerts) return null;
   const columns: TableColumnsType<AlertDto> = [
     {

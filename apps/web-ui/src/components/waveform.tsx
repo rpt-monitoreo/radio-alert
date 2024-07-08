@@ -89,12 +89,10 @@ const Waveform: React.FC<WaveformProps> = ({ url, onSelection }) => {
     wsRef.current.on('decode', () => {
       wsRegions.addRegion({
         start: 0,
-        content: '1',
         color: 'rgba(180, 180, 180, 0.5)',
       });
       wsRegions.addRegion({
         start: 0,
-        content: '2',
         color: 'rgba(180, 180, 180, 0.5)',
       });
     });
@@ -122,7 +120,7 @@ const Waveform: React.FC<WaveformProps> = ({ url, onSelection }) => {
         } else if (region2.start === 0 || !shouldUpdateRegion1) {
           region2.setOptions({ start: pos });
         }
-        onSelection(region1.start, region2.start);
+        onSelection(Math.min(region1.start, region2.start), Math.max(region1.start, region2.start));
 
         touchtime = 0;
       } else {
@@ -132,8 +130,10 @@ const Waveform: React.FC<WaveformProps> = ({ url, onSelection }) => {
       }
     });
 
-    wsRegions.on('region-updated', region => {
-      onSelection(region.start, region.end);
+    wsRegions.on('region-updated', _ => {
+      const region1 = wsRegions.getRegions()[0];
+      const region2 = wsRegions.getRegions()[1];
+      onSelection(Math.min(region1.start, region2.start), Math.max(region1.start, region2.start));
     });
 
     return () => {

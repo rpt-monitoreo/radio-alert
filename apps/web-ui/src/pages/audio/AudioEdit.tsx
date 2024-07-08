@@ -19,6 +19,12 @@ const AudioEdit: React.FC<AudioEditProps> = ({ createFileDtoIn, segmentStartSeco
 
   const { data: createData, isLoading: createLoading, error: createError } = useCreateFile(createFileDto, createFetch);
 
+  useEffect(() => {
+    if (!createLoading) {
+      setCreateFetch(false);
+    }
+  }, [createLoading]);
+
   const onSelection = useCallback(
     (start: number, end: number) => {
       setCreateFileDto(prevCreateFileDto => ({
@@ -52,7 +58,7 @@ const AudioEdit: React.FC<AudioEditProps> = ({ createFileDtoIn, segmentStartSeco
 
   useEffect(() => {
     if (createData) {
-      setWaveformUrl(`${import.meta.env.VITE_API_LOCAL}audio/fetchByName/fragment_${createFileDto.id}`);
+      setWaveformUrl(`${import.meta.env.VITE_API_LOCAL}audio/fetchByName/fragment_${createFileDto.id}?v=${Date.now()}`);
     }
   }, [createData, createFileDto.id]);
 
@@ -67,11 +73,12 @@ const AudioEdit: React.FC<AudioEditProps> = ({ createFileDtoIn, segmentStartSeco
           setCreateFetch(true);
         }}
         size='small'
+        disabled={createFileDto.duration <= 0}
       >
         Obtener
       </Button>
 
-      {waveformUrl ? (
+      {!createError && waveformUrl ? (
         <audio src={waveformUrl} controls>
           <track kind='captions' src='captions.vtt' label='Captions' />
           Tu navegador no soporta el elemento de audio.
