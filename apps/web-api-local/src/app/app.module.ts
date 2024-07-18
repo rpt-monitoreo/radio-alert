@@ -7,6 +7,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AlertsModule } from './alerts/alerts.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { Alert } from './alerts/alerts.entity';
+import { Transcription } from './alerts/transcription.entity';
 
 @Module({
   imports: [
@@ -16,7 +17,7 @@ import { Alert } from './alerts/alerts.entity';
       useFactory: async (configService: ConfigService) => ({
         type: 'mongodb',
         url: configService.get<string>('MONGODB_URI') + '/monitoring',
-        entities: [Alert],
+        entities: [Alert, Transcription],
         synchronize: true,
       }),
       inject: [ConfigService],

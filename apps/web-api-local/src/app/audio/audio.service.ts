@@ -30,19 +30,46 @@ export class AudioService {
         return { startSeconds, duration };
       });
     }
+    let duration = 0;
+    if (outputPath.includes('segment')) {
+      duration = await this.extractAudioSegment(filePath, startSeconds, createFileDto.duration, 16, 8000, outputPath, 'mp3');
+    } else {
+      //Fragment
+      const durations = await Promise.all([
+        this.extractAudioSegment(filePath, startSeconds, createFileDto.duration, 32, 16000, outputPath, 'mp3'),
+        this.extractAudioSegment(filePath, startSeconds, Math.min(createFileDto.duration, 180), 32, 32000, outputPath.replace('mp3', 'wav'), 'wav'),
+      ]);
+      duration = durations[0];
+    }
 
-    // Extract the last # seconds of the audio file
-    const duration = await new Promise<number>((resolve, reject) => {
-      ffmpeg(filePath)
+    return { startSeconds: startSeconds, duration };
+  }
+
+  async extractAudioSegment(
+    filePath: string,
+    startSeconds: number,
+    duration: number,
+    audioBitrate: number,
+    audioFrequency: number,
+    outputPath: string,
+    format: string
+  ): Promise<number> {
+    return new Promise<number>((resolve, reject) => {
+      const command = ffmpeg(filePath)
         .setStartTime(startSeconds)
-        .setDuration(createFileDto.duration)
-        .audioBitrate(outputPath.includes('segment') ? 16 : 32) // Lower bitrate Reduce file size
-        .audioFrequency(outputPath.includes('segment') ? 8000 : 16000) // Lower sample rate reduce elapsed time
+        .setDuration(duration)
+        .audioBitrate(audioBitrate) // Lower bitrate Reduce file size
+        .audioFrequency(audioFrequency) // Lower sample rate reduce elapsed time
         .audioChannels(1) // Convert to mono
         .outputOptions('-preset ultrafast')
-        .audioCodec('libmp3lame')
-        .toFormat('mp3')
-        .output(outputPath)
+        .toFormat(format)
+        .output(outputPath);
+
+      if (format == 'mp3') {
+        command.audioCodec('libmp3lame');
+      }
+
+      command
         .on('end', function () {
           // Usar ffprobe para obtener la duración del archivo procesado
           ffmpeg.ffprobe(outputPath, (err, metadata) => {
@@ -58,8 +85,6 @@ export class AudioService {
         })
         .run();
     });
-
-    return { startSeconds: startSeconds, duration };
   }
 
   async getAudioFileByName(filename: string): Promise<stream.Readable | null> {
