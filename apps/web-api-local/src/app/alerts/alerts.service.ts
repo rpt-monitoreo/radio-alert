@@ -105,8 +105,8 @@ export class AlertsService {
       ', '
     )}) de el siguiente texto: ${text}`;
 
-    //return promt;
-    return await this.getChatResponse(promt);
+    return promt;
+    //return await this.getChatResponse(promt);
   }
 
   async getValidDates(getAlertsDto: Partial<GetAlertsDto>): Promise<ValidDatesDto> {
