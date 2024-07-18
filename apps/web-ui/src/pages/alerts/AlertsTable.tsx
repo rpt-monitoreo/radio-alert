@@ -28,6 +28,7 @@ const AlertsTable: React.FC<AlertsTableProps> = ({ alerts }) => {
   const [createFetch, setCreateFetch] = useState(false);
   const [deleteFetch, setDeleteFetch] = useState(false);
   const [createFileDto, setCreateFileDto] = useState<CreateFileDto>(new CreateFileDto());
+  const [alertSeleted, setAlertSeleted] = useState<AlertDto>(new AlertDto());
   const [audioEditKey, setAudioEditKey] = useState(0);
 
   const { data: createData, isLoading: createLoading, error: createError } = useCreateFile(createFileDto, createFetch);
@@ -122,6 +123,7 @@ const AlertsTable: React.FC<AlertsTableProps> = ({ alerts }) => {
   });
 
   const handleClick = (alert: AlertDto) => {
+    setAlertSeleted(alert);
     setAudioEditKey(prevKey => prevKey + 1);
     setCreateFileDto({
       filePath: alert.filePath,
@@ -288,6 +290,7 @@ const AlertsTable: React.FC<AlertsTableProps> = ({ alerts }) => {
           <AudioEdit
             key={audioEditKey}
             createFileDtoIn={createFileDto}
+            alert={alertSeleted}
             segmentStartSeconds={createData.startSeconds}
             segmentDuration={createData.duration}
           ></AudioEdit>

@@ -4,14 +4,7 @@ import { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import RouteCard from './RouteCardComponent';
 import defaultProps from './_defaultProps';
-import {
-  headerTitleRender,
-  menuFooterRender,
-  menuItemRender,
-  getActionsRender,
-  getAvatarProps,
-} from './appHelpers';
-import PageIni from '../pages/pageIni';
+import { headerTitleRender, menuFooterRender, menuItemRender, getActionsRender, getAvatarProps } from './appHelpers';
 import './app.module.css';
 import Alerts from '../pages/alerts/Alerts';
 
@@ -48,10 +41,10 @@ function App() {
           collapsedShowGroupTitle: true,
         }}
         avatarProps={getAvatarProps()}
-        actionsRender={(props) => getActionsRender(props)}
+        actionsRender={props => getActionsRender(props)}
         headerTitleRender={headerTitleRender}
         menuFooterRender={menuFooterRender}
-        onMenuHeaderClick={(e) => console.log(e)}
+        onMenuHeaderClick={e => console.log(e)}
         menuItemRender={(item, dom) => menuItemRender(item, dom, setPathname)}
         {...settings}
       >
