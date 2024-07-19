@@ -85,8 +85,8 @@ const AudioEdit: React.FC<AudioEditProps> = ({ createFileDtoIn, alert, segmentSt
     const startTime = new Date(createFileDtoIn.startTime ?? '');
     const endTime = new Date(createFileDtoIn.endTime ?? '');
 
-    const startSecond = (startTime.getTime() - fileTime.getTime()) / 1000 - segmentStartSeconds + 10;
-    const endSecond = (endTime.getTime() - fileTime.getTime()) / 1000 - segmentStartSeconds + 10;
+    const startSecond = (startTime.getTime() - fileTime.getTime()) / 1000 - segmentStartSeconds;
+    const endSecond = (endTime.getTime() - fileTime.getTime()) / 1000 - segmentStartSeconds;
 
     const startPosition = (startSecond * 100) / segmentDuration;
     const endPosition = (endSecond * 100) / segmentDuration;
