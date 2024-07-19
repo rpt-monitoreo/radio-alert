@@ -61,7 +61,7 @@ export class AlertsService {
     if (!getAlertasDto) {
       throw new Error('getAlertasDto is undefined');
     }
-    const { startDate = '', endDate = '', clientName = '' } = getAlertasDto;
+    const { startDate = '', endDate = '', clientName = '', type = '' } = getAlertasDto;
 
     if (!startDate || !endDate) {
       throw new Error('startDate and endDate are required');
@@ -74,6 +74,7 @@ export class AlertsService {
           $lte: new Date(endDate + 'T23:59:59.999Z'),
         },
         ...(clientName && { clientName }),
+        ...(type && { type }),
       } as unknown as FindOptionsWhere<Alert>,
     };
     return this.alertsRepo.find(findOptions);
