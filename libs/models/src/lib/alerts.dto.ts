@@ -19,7 +19,7 @@ export class GetAlertsDto {
   readonly madia?: string;
   readonly clientName?: string;
   readonly platform?: string;
-  readonly type?: string;
+  readonly type?: string[];
 }
 
 export class GetTranscriptionDto {

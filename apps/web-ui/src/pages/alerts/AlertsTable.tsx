@@ -156,7 +156,7 @@ const AlertsTable: React.FC<AlertsTableProps> = ({ selectedDates }) => {
         .post(`${import.meta.env.VITE_API_LOCAL}alerts`, {
           startDate: selectedDates?.[0]?.format(dateFormat),
           endDate: selectedDates?.[1]?.format(dateFormat),
-          type: 'Nueva',
+          type: ['Nueva', 'RepetidaOtraPlataforma'],
         })
         .then(res => res.data),
   });
@@ -209,6 +209,19 @@ const AlertsTable: React.FC<AlertsTableProps> = ({ selectedDates }) => {
       render: text => getDateOffset(text).format('HH:mm:ss'),
       ellipsis: true,
       width: '100px',
+    },
+    {
+      title: 'Tipo',
+      dataIndex: 'type',
+      key: 'type',
+      filters: [
+        { text: 'Nueva', value: 'Nueva' },
+        { text: 'RepetidaOtraPlataforma', value: 'RepetidaOtraPlataforma' },
+      ],
+      onFilter: (value, record) => record.type.includes(value as string),
+      sorter: (a, b) => a.type.length - b.type.length,
+      ellipsis: true,
+      width: '150px',
     },
     {
       title: 'Palabras',
@@ -282,7 +295,7 @@ const AlertsTable: React.FC<AlertsTableProps> = ({ selectedDates }) => {
     rowKey: 'id',
     columns: columns,
     dataSource: alerts,
-    pagination: { pageSize: 20 },
+    pagination: { pageSize: 10 },
   };
 
   return (
