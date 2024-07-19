@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { UseQueryResult, useQuery } from '@tanstack/react-query';
+import { UseQueryResult, useQuery } from 'react-query';
 import { CreateFileDto } from '@radio-alert/models';
 
 export const useCreateFile = (params: CreateFileDto, isEnabled: boolean): UseQueryResult<{ startSeconds: number; duration: number }> => {

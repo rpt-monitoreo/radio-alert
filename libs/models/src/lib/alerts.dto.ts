@@ -1,3 +1,5 @@
+import { Dayjs } from 'dayjs';
+
 export class AlertDto {
   readonly id: string;
   readonly text: string;
@@ -17,6 +19,7 @@ export class GetAlertsDto {
   readonly madia?: string;
   readonly clientName?: string;
   readonly platform?: string;
+  readonly type?: string;
 }
 
 export class GetTranscriptionDto {
@@ -32,3 +35,7 @@ export class ValidDatesDto {
 export interface GetSummaryDto {
   text: string;
 }
+
+export type DateRange = [Dayjs | null, Dayjs | null];
+
+export const dateFormat = 'YYYY-MM-DD';

@@ -1,13 +1,16 @@
 import React, { useEffect, useRef, useState } from 'react';
 import dayjs from 'dayjs';
-import { AlertDto, CreateFileDto } from '@radio-alert/models';
+import { AlertDto, CreateFileDto, dateFormat, DateRange } from '@radio-alert/models';
 import { SearchOutlined, EditOutlined } from '@ant-design/icons';
 import type { InputRef, TableColumnsType, TableColumnType, TableProps } from 'antd';
-import { Button, Input, Modal, Space, Table } from 'antd';
+import { Button, Input, Space, Table } from 'antd';
 import type { FilterDropdownProps } from 'antd/es/table/interface';
 import Highlighter from 'react-highlight-words';
 import { useCreateFile, useDeleteFile } from '../../services/AudioService';
 import AudioEdit from '../audio/AudioEdit';
+import AlertsModal from './AlertsModal';
+import axios from 'axios';
+import { useQuery, UseQueryResult } from 'react-query';
 
 // Función para formatear la fecha asumiendo que es UTC
 const getDateOffset = (dateString: string | Date | dayjs.Dayjs) => {
@@ -17,26 +20,14 @@ const getDateOffset = (dateString: string | Date | dayjs.Dayjs) => {
 };
 
 interface AlertsTableProps {
-  alerts: AlertDto[] | undefined;
+  selectedDates: DateRange | null;
 }
 type DataIndex = keyof AlertDto;
 
-const AlertsTable: React.FC<AlertsTableProps> = ({ alerts }) => {
+const AlertsTable: React.FC<AlertsTableProps> = ({ selectedDates }) => {
+  //#region Table Handlers
   const [searchText, setSearchText] = useState('');
   const [searchedColumn, setSearchedColumn] = useState('');
-  const [modalOpen, setModalOpen] = useState(false);
-  const [createFetch, setCreateFetch] = useState(false);
-  const [deleteFetch, setDeleteFetch] = useState(false);
-  const [createFileDto, setCreateFileDto] = useState<CreateFileDto>(new CreateFileDto());
-  const [alertSeleted, setAlertSeleted] = useState<AlertDto>(new AlertDto());
-  const [audioEditKey, setAudioEditKey] = useState(0);
-
-  const { data: createData, isLoading: createLoading, error: createError } = useCreateFile(createFileDto, createFetch);
-  const { data: deleteData, error: deleteError } = useDeleteFile(createFileDto?.output, deleteFetch);
-
-  useEffect(() => {
-    setDeleteFetch(false);
-  }, [deleteData, deleteError]);
 
   const searchInput = useRef<InputRef>(null);
 
@@ -122,8 +113,19 @@ const AlertsTable: React.FC<AlertsTableProps> = ({ alerts }) => {
       ),
   });
 
-  const handleClick = (alert: AlertDto) => {
-    setAlertSeleted(alert);
+  //#endregion
+  //#region Modal Handlers
+
+  // const [createFileDto, setCreateFileDto] = useState<CreateFileDto>(new CreateFileDto());
+  // const [alertSeleted, setAlertSeleted] = useState<AlertDto>(new AlertDto());
+  // const [audioEditKey, setAudioEditKey] = useState(0);
+
+  //const { data: createData, isLoading: createLoading, error: createError } = useCreateFile(createFileDto, createFetch);
+  // const { data: deleteData, error: deleteError } = useDeleteFile(createFileDto?.output, deleteFetch);
+
+  const [modalOpen, setModalOpen] = useState(false);
+  const showModal = (alert: AlertDto) => {
+    /* setAlertSeleted(alert);
     setAudioEditKey(prevKey => prevKey + 1);
     setCreateFileDto({
       filePath: alert.filePath,
@@ -132,24 +134,41 @@ const AlertsTable: React.FC<AlertsTableProps> = ({ alerts }) => {
       output: `segment_${alert.id}`,
       duration: 1800,
       id: alert.id,
-    });
-    setCreateFetch(true);
+    });*/
     setModalOpen(true);
   };
 
-  const handleClose = () => {
-    setCreateFetch(false);
+  const hideModal = () => {
     setModalOpen(false);
-    // setDeleteFetch(true);
   };
 
-  useEffect(() => {
-    if (!createLoading) {
-      setCreateFetch(false);
-    }
-  }, [createLoading]);
+  //#endregion
 
-  if (!alerts) return null;
+  //#region Alerts
+  const {
+    data: alerts,
+    isLoading: isLoadingAlerts,
+    error: errorAlerts,
+  }: UseQueryResult<AlertDto[]> = useQuery<AlertDto[]>({
+    queryKey: ['alerts', selectedDates],
+    queryFn: async () =>
+      await axios
+        .post(`${import.meta.env.VITE_API_LOCAL}alerts`, {
+          startDate: selectedDates?.[0]?.format(dateFormat),
+          endDate: selectedDates?.[1]?.format(dateFormat),
+          type: 'Nueva',
+        })
+        .then(res => res.data),
+  });
+
+  useEffect(() => {
+    console.log(alerts);
+  }, [alerts]);
+
+  if (isLoadingAlerts) return <div>Loading...</div>;
+  if (errorAlerts) return <div>Error loading Alerts</div>;
+  //#endregion
+
   const columns: TableColumnsType<AlertDto> = [
     {
       title: 'Cliente',
@@ -248,19 +267,12 @@ const AlertsTable: React.FC<AlertsTableProps> = ({ alerts }) => {
         return <div style={{ whiteSpace: 'normal' }} dangerouslySetInnerHTML={{ __html: finalTransformedText }} />;
       },
     },
-    /* {
-      title: 'Archivo',
-      dataIndex: 'filePath',
-      key: 'filePath',
-      ellipsis: true,
-      width: '30%',
-    }, */
     {
       title: 'Editar',
       dataIndex: 'filePath',
       key: 'filePath',
       ellipsis: true,
-      render: (_, record) => <Button icon={<EditOutlined />} onClick={() => handleClick(record)}></Button>,
+      render: (_, record) => <Button icon={<EditOutlined />} onClick={() => showModal(record)}></Button>,
       width: '60px',
     },
   ];
@@ -276,28 +288,7 @@ const AlertsTable: React.FC<AlertsTableProps> = ({ alerts }) => {
   return (
     <>
       <Table {...tableProps} />
-      <Modal
-        title='Vertically centered modal dialog'
-        centered
-        open={modalOpen}
-        loading={createLoading}
-        onCancel={() => handleClose()}
-        onClose={() => handleClose()}
-        destroyOnClose={true}
-        width='100vw'
-      >
-        {createData && !createError ? (
-          <AudioEdit
-            key={audioEditKey}
-            createFileDtoIn={createFileDto}
-            alert={alertSeleted}
-            segmentStartSeconds={createData.startSeconds}
-            segmentDuration={createData.duration}
-          ></AudioEdit>
-        ) : (
-          <div>Error creating file</div>
-        )}
-      </Modal>
+      <AlertsModal visible={modalOpen} onClose={hideModal}></AlertsModal>
     </>
   );
 };

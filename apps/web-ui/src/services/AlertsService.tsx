@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { UseQueryResult, useQuery } from '@tanstack/react-query';
+import { UseQueryResult, useQuery } from 'react-query';
 import { AlertDto, GetAlertsDto, GetSummaryDto, GetTranscriptionDto, ValidDatesDto } from '@radio-alert/models';
 
 export const useGetDates = (params: GetAlertsDto): UseQueryResult<ValidDatesDto> => {
