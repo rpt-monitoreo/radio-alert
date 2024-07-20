@@ -11,12 +11,13 @@ import { rimraf } from 'rimraf';
 @Injectable()
 export class AudioService {
   async createAudioSegment(createFileDto: CreateFileDto): Promise<{ startSeconds: number; duration: number }> {
-    const filePath = path.resolve(createFileDto.filePath);
+    const { alert } = createFileDto;
+    const filePath = path.resolve(alert.filePath);
     const outputPath = path.resolve(`./audioFiles/${createFileDto.output}.mp3`);
     let startSeconds = 0;
-    if (createFileDto.endTime) {
+    if (alert.endTime) {
       const fileTime = getDateFromFile(filePath);
-      const endTime = new Date(createFileDto.endTime);
+      const endTime = new Date(alert.endTime);
       const endSeconds = (endTime.getTime() - fileTime.getTime()) / 1000;
 
       if (endSeconds > createFileDto.duration / 2) startSeconds = endSeconds - createFileDto.duration / 2;
