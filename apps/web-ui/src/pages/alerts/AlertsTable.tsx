@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useRef, useState } from 'react';
 import dayjs from 'dayjs';
 import { AlertDto, dateFormat, DateRange } from '@radio-alert/models';
 import { SearchOutlined, EditOutlined } from '@ant-design/icons';
@@ -115,27 +115,11 @@ const AlertsTable: React.FC<AlertsTableProps> = ({ selectedDates }) => {
   //#endregion
   //#region Modal Handlers
 
-  // const [createFileDto, setCreateFileDto] = useState<CreateFileDto>(new CreateFileDto());
-  // const [alertSeleted, setAlertSeleted] = useState<AlertDto>(new AlertDto());
-  // const [audioEditKey, setAudioEditKey] = useState(0);
-
-  //const { data: createData, isLoading: createLoading, error: createError } = useCreateFile(createFileDto, createFetch);
-  // const { data: deleteData, error: deleteError } = useDeleteFile(createFileDto?.output, deleteFetch);
-
   const [modalOpen, setModalOpen] = useState(false);
   const { setSelectedAlert } = useAlert();
+
   const showModal = (alert: AlertDto) => {
     setSelectedAlert(alert);
-    /* setAlertSeleted(alert);
-    setAudioEditKey(prevKey => prevKey + 1);
-    setCreateFileDto({
-      filePath: alert.filePath,
-      startTime: alert.startTime,
-      endTime: alert.endTime,
-      output: `segment_${alert.id}`,
-      duration: 1800,
-      id: alert.id,
-    });*/
     setModalOpen(true);
   };
 
