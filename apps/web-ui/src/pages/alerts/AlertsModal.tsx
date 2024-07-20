@@ -1,5 +1,6 @@
 import React from 'react';
 import { Modal } from 'antd';
+import { useAlert } from './AlertsContext';
 
 interface AlertsModalProps {
   visible: boolean;
@@ -7,9 +8,14 @@ interface AlertsModalProps {
 }
 
 const AlertsModal: React.FC<AlertsModalProps> = ({ visible, onClose }) => {
+  const { selectedAlert } = useAlert();
+
+  if (!selectedAlert) {
+    return <div>No alert selected</div>;
+  }
   return (
     <>
-      <Modal open={visible} title={'title'} onCancel={onClose} footer={null}>
+      <Modal open={visible} title={selectedAlert.clientName} onCancel={onClose} footer={null}>
         {<div>content</div>}
       </Modal>
       {/* <Modal

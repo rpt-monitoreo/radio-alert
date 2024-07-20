@@ -1,16 +1,15 @@
 import React, { useEffect, useRef, useState } from 'react';
 import dayjs from 'dayjs';
-import { AlertDto, CreateFileDto, dateFormat, DateRange } from '@radio-alert/models';
+import { AlertDto, dateFormat, DateRange } from '@radio-alert/models';
 import { SearchOutlined, EditOutlined } from '@ant-design/icons';
 import type { InputRef, TableColumnsType, TableColumnType, TableProps } from 'antd';
 import { Button, Input, Space, Table } from 'antd';
 import type { FilterDropdownProps } from 'antd/es/table/interface';
 import Highlighter from 'react-highlight-words';
-import { useCreateFile, useDeleteFile } from '../../services/AudioService';
-import AudioEdit from '../audio/AudioEdit';
 import AlertsModal from './AlertsModal';
 import axios from 'axios';
 import { useQuery, UseQueryResult } from 'react-query';
+import { useAlert } from './AlertsContext';
 
 // Función para formatear la fecha asumiendo que es UTC
 const getDateOffset = (dateString: string | Date | dayjs.Dayjs) => {
@@ -124,7 +123,9 @@ const AlertsTable: React.FC<AlertsTableProps> = ({ selectedDates }) => {
   // const { data: deleteData, error: deleteError } = useDeleteFile(createFileDto?.output, deleteFetch);
 
   const [modalOpen, setModalOpen] = useState(false);
+  const { setSelectedAlert } = useAlert();
   const showModal = (alert: AlertDto) => {
+    setSelectedAlert(alert);
     /* setAlertSeleted(alert);
     setAudioEditKey(prevKey => prevKey + 1);
     setCreateFileDto({
@@ -160,10 +161,6 @@ const AlertsTable: React.FC<AlertsTableProps> = ({ selectedDates }) => {
         })
         .then(res => res.data),
   });
-
-  useEffect(() => {
-    console.log(alerts);
-  }, [alerts]);
 
   if (isLoadingAlerts) return <div>Loading...</div>;
   if (errorAlerts) return <div>Error loading Alerts</div>;
