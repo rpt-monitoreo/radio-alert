@@ -38,7 +38,15 @@ export class AudioService {
       //Fragment
       const durations = await Promise.all([
         this.extractAudioSegment(filePath, startSeconds, createFileDto.duration, 32, 16000, outputPath, 'mp3'),
-        this.extractAudioSegment(filePath, startSeconds, Math.min(createFileDto.duration, 180), 32, 32000, outputPath.replace('mp3', 'wav'), 'wav'),
+        this.extractAudioSegment(
+          filePath,
+          startSeconds,
+          Math.min(createFileDto.duration, 180),
+          128000,
+          44100,
+          outputPath.replace('mp3', 'wav'),
+          'wav'
+        ),
       ]);
       duration = durations[0];
     }

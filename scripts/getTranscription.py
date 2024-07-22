@@ -1,10 +1,9 @@
 from faster_whisper import WhisperModel
+from pymongo import MongoClient
 import argparse
+import gridfs
 import torch
 import os
-from pymongo import MongoClient
-import gridfs
-import glob
 
 
 def main():
@@ -17,7 +16,7 @@ def main():
     device = "cuda" if torch.cuda.is_available() else "cpu"
     compute_type = "int8_float16" if device == "cuda" else "int8"
 
-    model_size = "medium"
+    model_size = "large-v3"
     model = WhisperModel(model_size, device=device, compute_type=compute_type)
 
     segments, _ = model.transcribe(
@@ -26,7 +25,6 @@ def main():
     texto = "".join(segment.text + " " for segment in segments)
 
     alert_id = os.path.splitext(file_path)[0].split("_")[1]
-
     # Connect to MongoDB
     client = MongoClient(mongo_uri)
     db = client[db_name]
@@ -40,7 +38,7 @@ def main():
         # Update the document by appending the new note
         collection.update_one(
             {"alert_id": alert_id},
-            {"$push": {"transcription": texto}}
+            {"$set": {"text": texto}}
         )
         note_id = existing_document["_id"]
     else:
@@ -53,18 +51,11 @@ def main():
         result = collection.insert_one(new_document)
         note_id = result.inserted_id
 
-    print(file_path.replace("wav", "mp3"))
     with open(file_path, 'rb') as f:
         fs.put(f, filename=os.path.basename(
             file_path.replace("wav", "mp3")), note_id=note_id)
 
     client.close()
-
-    # Delete all files in the folder that include alert_id
-    folder_path = os.path.dirname(file_path)
-    pattern = os.path.join(folder_path, f"*{alert_id}*")
-    for file in glob.glob(pattern):
-        os.remove(file)
 
 
 if __name__ == '__main__':

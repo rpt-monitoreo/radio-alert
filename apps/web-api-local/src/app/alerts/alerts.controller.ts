@@ -1,6 +1,6 @@
 import { Controller, Post, Body, HttpException, HttpStatus } from '@nestjs/common';
 import { AlertsService } from './alerts.service';
-import { GetAlertsDto, GetSummaryDto, GetTranscriptionDto } from '@radio-alert/models';
+import { GetAlertsDto, GetSummaryDto, GetTranscriptionDto, SummaryDto } from '@radio-alert/models';
 
 @Controller('alerts')
 export class AlertsController {
@@ -37,9 +37,9 @@ export class AlertsController {
   }
 
   @Post('getSummary')
-  async getSummary(@Body() getSummaryDto: GetSummaryDto): Promise<string> {
+  async getSummary(@Body() getSummaryDto: GetSummaryDto): Promise<SummaryDto> {
     try {
-      return await this.alertService.getChatResponse(getSummaryDto.text);
+      return await this.alertService.getChatResponse(getSummaryDto);
     } catch (error) {
       throw new HttpException(
         {

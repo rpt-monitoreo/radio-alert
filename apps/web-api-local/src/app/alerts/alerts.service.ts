@@ -2,39 +2,56 @@
 import { Injectable } from '@nestjs/common';
 import { DataSource, FindOneOptions, FindOptionsWhere, MongoRepository } from 'typeorm';
 import { Alert } from './alerts.entity';
-import { GetAlertsDto, GetTranscriptionDto, ValidDatesDto } from '@radio-alert/models';
+import { GetAlertsDto, GetSummaryDto, GetTranscriptionDto, SummaryDto, TranscriptionDto, ValidDatesDto } from '@radio-alert/models';
 import { Transcription } from './transcription.entity';
 import OpenAI from 'openai';
 import { exec } from 'child_process';
 import path from 'path';
-import { promises as fs } from 'fs';
 import { ConfigService } from '@nestjs/config';
+import { Note } from './note.entity';
 
 @Injectable()
 export class AlertsService {
   alertsRepo: MongoRepository<Alert>;
   transcriptRepo: MongoRepository<Transcription>;
+  noteRepo: MongoRepository<Note>;
   openai: OpenAI;
 
   constructor(private dataSource: DataSource, configService: ConfigService) {
     this.alertsRepo = this.dataSource.getMongoRepository(Alert);
     this.transcriptRepo = this.dataSource.getMongoRepository(Transcription);
+    this.noteRepo = this.dataSource.getMongoRepository(Note);
     this.openai = new OpenAI({
       apiKey: configService.get<string>('OPEN_AI_KEY'),
     });
   }
 
-  async getChatResponse(prompt: string): Promise<string> {
+  async getChatResponse(getSummaryDto: GetSummaryDto): Promise<SummaryDto> {
     try {
-      //const message = prompt;
+      const prompt = `Generar un título separado por una línea nueva y generar el resumen como noticia en tercera 
+      persona con estas palabras clave: (erasmo zuleta). Asegúrate de que el resumen sea fiel a los hechos y no atribuya 
+      incorrectamente acciones o eventos a personas mencionadas en el texto. Aquí está el texto: ${getSummaryDto.text}`;
+
       const response = await this.openai.chat.completions.create({
         model: 'gpt-4o',
         messages: [{ role: 'user', content: prompt }],
         max_tokens: 150,
       });
 
-      const message = response.choices[0].message?.content;
-      return message || 'No response from the model.';
+      const message = response.choices[0].message?.content.replace(/#/g, '').replace(/\*/g, '');
+      const title = message.split('\n')[0].trim();
+      let summary = message.split('\n').slice(1).join('\n').trim();
+      console.log('summary', message);
+
+      // Truncate summary after the last period
+      const lastPeriodIndex = summary.lastIndexOf('.');
+      if (lastPeriodIndex !== -1) {
+        summary = summary.substring(0, lastPeriodIndex + 1);
+      }
+
+      await this.noteRepo.update({ id: getSummaryDto.noteId }, { title, summary });
+
+      return { title, summary };
     } catch (error) {
       throw new Error(`Error fetching response from OpenAI.${error}`);
     }
@@ -80,34 +97,16 @@ export class AlertsService {
     return this.alertsRepo.find(findOptions);
   }
 
-  async readAndDeleteFile(textPath: string): Promise<string> {
-    try {
-      // Leer el contenido del archivo
-      const content = await fs.readFile(textPath, 'utf-8');
-      // Eliminar el archivo
-      await fs.unlink(textPath);
-      // Retornar el contenido del archivo
-      return content;
-    } catch (error) {
-      throw new Error(`Error reading or deleting file: ${error}`);
-    }
-  }
-
-  async getText(getTranscriptionDto: GetTranscriptionDto): Promise<string> {
+  async getText(getTranscriptionDto: GetTranscriptionDto): Promise<TranscriptionDto> {
     const scriptPath = './scripts/getTranscription.py';
     const filePath = path.resolve(`./audioFiles/${getTranscriptionDto.filename}`);
 
     await this.runPythonScript(scriptPath, [filePath]);
 
-    const textPath = path.resolve(`${filePath.replace('.wav', '_transcription.txt')}`);
-    const text = await this.readAndDeleteFile(textPath);
+    const alertId = getTranscriptionDto.filename.split('_')[1].replace('.wav', '');
+    const note = await this.noteRepo.findOne({ where: { alert_id: alertId } });
 
-    const promt = `Generar titulo y resumen como noticia en tercera persona con estas palabras clave: (${getTranscriptionDto.words.join(
-      ', '
-    )}) de el siguiente texto: ${text}`;
-
-    return promt;
-    //return await this.getChatResponse(promt);
+    return { noteId: note.id, text: note.text };
   }
 
   async getValidDates(getAlertsDto: Partial<GetAlertsDto>): Promise<ValidDatesDto> {
