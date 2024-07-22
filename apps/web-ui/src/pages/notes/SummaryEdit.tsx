@@ -48,7 +48,7 @@ const SummaryEdit: React.FC = () => {
           text: transcriptionData?.text,
           words: selectedAlert.words,
         };
-        //generateSummary(getSummaryDtoRef.current);
+        generateSummary(getSummaryDtoRef.current);
       },
     }
   );
@@ -105,7 +105,6 @@ const SummaryEdit: React.FC = () => {
             </Spin>
           )}
         </Col>
-        {/*   <Col span={12}>{summary && <TextArea value={summary} placeholder='Escribe aquí...' rows={4} />}</Col> */}
       </Row>
     </>
   ) : null;
