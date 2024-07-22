@@ -1,55 +1,108 @@
-import React from 'react';
-import { Modal } from 'antd';
+import React, { useEffect, useMemo, useState } from 'react';
+import { Button, Col, message, Modal, Row, Spin, Steps } from 'antd';
 import { useAlert } from './AlertsContext';
-import { useQuery, UseQueryResult } from 'react-query';
-import { CreateFileDto, FileDto } from '@radio-alert/models';
+import { useMutation, UseMutationResult } from 'react-query';
+import { CreateFileDto, FileDto, Fragment } from '@radio-alert/models';
 import axios from 'axios';
 import AudioEdit from '../audio/AudioEdit';
+import moment from 'moment';
+import SummaryEdit from '../notes/SummaryEdit';
 
 interface AlertsModalProps {
   visible: boolean;
   onClose: () => void;
 }
 
+const useCreateFileMutation = (createFileDto: CreateFileDto) => {
+  return useMutation<FileDto, unknown, CreateFileDto, unknown>(async () => {
+    const response = await axios.post(`${import.meta.env.VITE_API_LOCAL}audio/createFile`, createFileDto);
+    return response.data;
+  });
+};
+type CreateFileMutationResult = UseMutationResult<FileDto, unknown, CreateFileDto, unknown>;
+
 const AlertsModal: React.FC<AlertsModalProps> = ({ visible, onClose }) => {
   const { selectedAlert } = useAlert();
+  const [fragment, setFragment] = useState<Fragment>(new Fragment());
+  const [createFragmentDto, setCreateFragmentDto] = useState<CreateFileDto>(new CreateFileDto());
 
-  const segmentPath = `segment_${selectedAlert?.id}`;
+  const createSegmentDto = useMemo(
+    () => ({
+      alert: selectedAlert,
+      output: `segment_${selectedAlert?.id}`,
+      duration: 1800,
+    }),
+    [selectedAlert]
+  );
+
   const {
+    mutateAsync: createSegmentFile,
     data: segmentData,
     isLoading: isLoadingSegment,
     error: errorSegment,
-  }: UseQueryResult<FileDto> = useQuery<FileDto>({
-    queryKey: ['segment'],
-    queryFn: async () =>
-      await axios
-        .post(`${import.meta.env.VITE_API_LOCAL}audio/createFile`, {
-          alert: selectedAlert,
-          output: segmentPath,
-          duration: 1800,
-        })
-        .then(res => res.data),
-    enabled: visible,
-  });
-  const handleCreateFileDto = (createFileDto: CreateFileDto) => {
-    console.log('Received createFileDto:', createFileDto);
-    // Handle the createFileDto as needed
-  };
+  }: CreateFileMutationResult = useCreateFileMutation(createSegmentDto);
 
-  /*  const {
+  const {
+    mutateAsync: createFragmentFile,
     data: fragmentData,
     isLoading: isLoadingFragment,
     error: errorFragment,
-    refetch,
-  }: UseQueryResult<FileDto> = useQuery<FileDto>({
-    queryKey: ['fragment'],
-    queryFn: async () => await axios.post(`${import.meta.env.VITE_API_LOCAL}audio/createFile`, createFileDto).then(res => res.data),
-    enabled: false,
-  });
+  }: CreateFileMutationResult = useCreateFileMutation(createFragmentDto);
 
-  const onClick = () => {
-    refetch();
-  }; */
+  useEffect(() => {
+    if (visible) {
+      setFragment(new Fragment());
+      setCreateFragmentDto(new CreateFileDto());
+      createSegmentFile(createSegmentDto);
+    }
+  }, [visible, createSegmentFile, createSegmentDto]);
+
+  const handleCreateFragment = (createFileDto: CreateFileDto, fragment: Fragment) => {
+    setFragment(fragment);
+    setCreateFragmentDto(createFileDto);
+  };
+
+  const [current, setCurrent] = useState(0);
+  useEffect(() => {
+    if (current === 1) {
+      createFragmentFile(createFragmentDto);
+    }
+  }, [createFragmentDto, createFragmentFile, current]);
+
+  const next = () => {
+    setCurrent(current + 1);
+  };
+
+  const prev = () => {
+    setCurrent(current - 1);
+  };
+
+  const steps = [
+    {
+      title: 'Editar Audio',
+      content: errorSegment ? (
+        <div>Error loading Segment</div>
+      ) : (
+        segmentData && (
+          <AudioEdit segmentData={segmentData} audioFile={createSegmentDto.output} onCreateFragmentDto={handleCreateFragment}></AudioEdit>
+        )
+      ),
+    },
+    {
+      title: 'Resumen',
+      content: errorFragment ? (
+        <div>Error loading Fragment</div>
+      ) : (
+        segmentData && <Spin spinning={isLoadingFragment}>{fragmentData && <SummaryEdit></SummaryEdit>}</Spin>
+      ),
+    },
+    {
+      title: 'Nota',
+      content: 'Last-content22',
+    },
+  ];
+
+  const items = steps.map(item => ({ key: item.title, title: item.title }));
 
   if (!selectedAlert) return <div>No alert selected</div>;
 
@@ -64,11 +117,37 @@ const AlertsModal: React.FC<AlertsModalProps> = ({ visible, onClose }) => {
       destroyOnClose={true}
       footer={null}
     >
-      {errorSegment ? (
-        <div>Error loading Segment</div>
-      ) : (
-        segmentData && <AudioEdit segmentData={segmentData} audioFile={segmentPath} onCreateFileDto={handleCreateFileDto}></AudioEdit>
-      )}
+      <>
+        <Steps current={current} items={items} size='small' />
+        <div style={{ minHeight: '300px', marginTop: '20px' }}>{steps[current].content}</div>
+        <Row style={{ marginTop: 24 }}>
+          <Col span={3}>
+            <Button size='small' style={{ margin: '0 8px' }} onClick={() => prev()} disabled={current === 0}>
+              {current > 0 ? 'Previous' : '_________'}
+            </Button>
+            {current < steps.length - 1 && (
+              <Button type='primary' onClick={() => next()} size='small' disabled={!createFragmentDto.duration || createFragmentDto.duration === 0}>
+                Next
+              </Button>
+            )}
+            {current === steps.length - 1 && (
+              <Button type='primary' onClick={() => message.success('Processing complete!')} size='small'>
+                Done
+              </Button>
+            )}
+          </Col>
+
+          <Col span={3}>
+            <div>{'Fecha: ' + (fragment.startTime ? moment(fragment.startTime).format('YYYY-MM-DD') : '')}</div>
+          </Col>
+          <Col span={3}>
+            <div>{'Inicio: ' + (fragment.startTime ? moment(fragment.startTime).format('HH:mm:ss') : '')}</div>
+          </Col>
+          <Col span={3}>
+            <div>{`Duración: ${fragment.startTime ? moment.utc(fragment.duration?.asMilliseconds()).format('HH:mm:ss') : ''}`}</div>
+          </Col>
+        </Row>
+      </>
     </Modal>
   );
 };

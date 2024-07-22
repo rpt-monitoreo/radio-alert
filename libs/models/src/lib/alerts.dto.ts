@@ -24,16 +24,25 @@ export class GetAlertsDto {
 
 export class GetTranscriptionDto {
   readonly filename: string;
-  readonly words: string[];
 }
-
+export class TranscriptionDto {
+  readonly noteId: string;
+  readonly text: string;
+}
 export class ValidDatesDto {
   readonly minDate: string;
   readonly maxDate: string;
 }
 
-export interface GetSummaryDto {
-  text: string;
+export class GetSummaryDto {
+  readonly noteId: string;
+  readonly text: string;
+  readonly words: string[];
+}
+
+export class SummaryDto {
+  readonly title: string;
+  readonly summary: string;
 }
 
 export type DateRange = [Dayjs | null, Dayjs | null];

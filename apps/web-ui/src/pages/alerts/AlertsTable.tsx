@@ -116,9 +116,11 @@ const AlertsTable: React.FC<AlertsTableProps> = ({ selectedDates }) => {
   //#region Modal Handlers
 
   const [modalOpen, setModalOpen] = useState(false);
+  const [modalKey, setModalKey] = useState(0);
   const { setSelectedAlert } = useAlert();
 
   const showModal = (alert: AlertDto) => {
+    setModalKey(prevKey => prevKey + 1);
     setSelectedAlert(alert);
     setModalOpen(true);
   };
@@ -282,7 +284,7 @@ const AlertsTable: React.FC<AlertsTableProps> = ({ selectedDates }) => {
   return (
     <>
       <Table {...tableProps} />
-      <AlertsModal visible={modalOpen} onClose={hideModal}></AlertsModal>
+      <AlertsModal key={modalKey} visible={modalOpen} onClose={hideModal}></AlertsModal>
     </>
   );
 };

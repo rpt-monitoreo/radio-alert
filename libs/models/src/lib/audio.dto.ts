@@ -1,3 +1,4 @@
+import moment from 'moment';
 import { AlertDto } from './alerts.dto';
 
 export class CreateFileDto {
@@ -10,4 +11,9 @@ export class CreateFileDto {
 export class FileDto {
   startSeconds: number;
   duration: number;
+}
+
+export class Fragment {
+  startTime: Date;
+  duration: moment.Duration;
 }

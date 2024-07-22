@@ -16,7 +16,8 @@
     "baseUrl": ".",
     "paths": {
       "@radio-alert/models": ["libs/models/src/index.ts"]
-    }
+    },
+    "esModuleInterop": true
   },
   "exclude": ["node_modules", "tmp"]
 }

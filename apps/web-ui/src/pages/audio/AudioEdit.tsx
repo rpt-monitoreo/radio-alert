@@ -1,7 +1,7 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import Waveform from '../../components/waveform';
-import { Button, Col, Row } from 'antd';
-import { CreateFileDto, getDateFromFile, FileDto } from '@radio-alert/models';
+import { Col, Row } from 'antd';
+import { CreateFileDto, getDateFromFile, FileDto, Fragment } from '@radio-alert/models';
 import BarComponent from '../../components/Bar';
 import moment from 'moment';
 import { useAlert } from '../alerts/AlertsContext';
@@ -9,20 +9,27 @@ import { useAlert } from '../alerts/AlertsContext';
 interface AudioEditProps {
   audioFile: string;
   segmentData: FileDto;
-  onCreateFileDto: (createFileDto: CreateFileDto) => void;
+  onCreateFragmentDto: (createFragmentDto: CreateFileDto, fragment: Fragment) => void;
 }
-const AudioEdit: React.FC<AudioEditProps> = ({ audioFile, segmentData, onCreateFileDto }) => {
+const AudioEdit: React.FC<AudioEditProps> = ({ audioFile, segmentData, onCreateFragmentDto: onCreateFileDto }) => {
   const { selectedAlert } = useAlert();
 
   const url = `${import.meta.env.VITE_API_LOCAL}audio/fetchByName/${audioFile}`;
 
   const [createFileDto, setCreateFileDto] = useState<CreateFileDto>(new CreateFileDto());
-  const [fragmentDuration, setFragmentDuration] = useState<moment.Duration>();
-  const [startFragmentTime, setStartFragmentTime] = useState<Date | null>();
+  const [fragment, setFragment] = useState<Fragment>(new Fragment());
 
   const onSelection = useCallback(
     (start: number, end: number) => {
-      setFragmentDuration(moment.duration(end - start, 'seconds'));
+      const fileTime = getDateFromFile(selectedAlert?.filePath ?? '');
+      fileTime.setUTCHours(fileTime.getUTCHours() + 5);
+
+      setFragment(prevFragment => ({
+        ...prevFragment,
+        startTime: new Date(fileTime.getTime() + (segmentData.startSeconds + start) * 1000),
+        duration: moment.duration(end - start, 'seconds'),
+      }));
+
       setCreateFileDto(prevCreateFileDto => ({
         ...prevCreateFileDto,
         alert: selectedAlert,
@@ -30,16 +37,15 @@ const AudioEdit: React.FC<AudioEditProps> = ({ audioFile, segmentData, onCreateF
         output: `fragment_${selectedAlert?.id}`,
         duration: end - start,
       }));
-      const fileTime = getDateFromFile(selectedAlert?.filePath ?? '');
-      fileTime.setUTCHours(fileTime.getUTCHours() + 5);
-      setStartFragmentTime(new Date(fileTime.getTime() + (segmentData.startSeconds + start) * 1000));
     },
-    [selectedAlert, segmentData.startSeconds]
+    [selectedAlert, segmentData]
   );
 
-  const onClick = () => {
-    onCreateFileDto(createFileDto); // Send createFileDto back to parent
-  };
+  useEffect(() => {
+    if (createFileDto.alert) {
+      onCreateFileDto(createFileDto, fragment);
+    }
+  }, [createFileDto, onCreateFileDto, fragment]);
 
   if (!selectedAlert) return <div>No alert selected</div>;
 
@@ -60,20 +66,12 @@ const AudioEdit: React.FC<AudioEditProps> = ({ audioFile, segmentData, onCreateF
   const { startPosition, endPosition } = calculatePositions();
 
   return (
-    <>
-      <Waveform url={url} onSelection={onSelection} />
-      <BarComponent startPosition={startPosition} endPosition={endPosition} />
-      <Row align='middle'>
-        <Col span={4}>
-          <div>{'Fecha: ' + (startFragmentTime ? moment(startFragmentTime).format('YYYY-MM-DD') : '')}</div>
-          <div>{'Inicio: ' + (startFragmentTime ? moment(startFragmentTime).format('HH:mm:ss') : '')}</div>
-          <div>{`Duración: ${startFragmentTime ? moment.utc(fragmentDuration?.asMilliseconds()).format('HH:mm:ss') : ''}`}</div>
-          <Button type='primary' onClick={onClick} size='small' disabled={!createFileDto.duration || createFileDto.duration === 0}>
-            Audio
-          </Button>
-        </Col>
-      </Row>
-    </>
+    <Row align='middle'>
+      <Col span={24}>
+        <Waveform url={url} onSelection={onSelection} />
+        <BarComponent startPosition={startPosition} endPosition={endPosition} />
+      </Col>
+    </Row>
   );
 };
 
