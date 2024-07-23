@@ -28,6 +28,7 @@ export class AudioController {
         return;
       }
       res.header('Content-Type', 'audio/mpeg');
+      res.header('Accept-Ranges', 'bytes');
       res.send(audioStream);
     } catch (err) {
       res.status(HttpStatus.INTERNAL_SERVER_ERROR).send({ error: err.message });

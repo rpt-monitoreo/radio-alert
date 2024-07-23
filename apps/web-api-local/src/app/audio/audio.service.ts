@@ -14,8 +14,9 @@ export class AudioService {
     const { alert } = createFileDto;
     const filePath = path.resolve(alert.filePath);
     const outputPath = path.resolve(`./audioFiles/${createFileDto.output}.mp3`);
+
     let startSeconds = 0;
-    if (alert.endTime) {
+    if (outputPath.includes('segment')) {
       const fileTime = getDateFromFile(filePath);
       const endTime = new Date(alert.endTime);
       const endSeconds = (endTime.getTime() - fileTime.getTime()) / 1000;
@@ -31,6 +32,7 @@ export class AudioService {
         return { startSeconds, duration };
       });
     }
+
     let duration = 0;
     if (outputPath.includes('segment')) {
       duration = await this.extractAudioSegment(filePath, startSeconds, createFileDto.duration, 16, 8000, outputPath, 'mp3');
