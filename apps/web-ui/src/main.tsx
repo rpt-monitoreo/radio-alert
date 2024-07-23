@@ -6,6 +6,7 @@ import esES from 'antd/locale/es_ES';
 import { QueryClient, QueryClientProvider } from 'react-query';
 import App from './app/app';
 import { AlertProvider } from './pages/alerts/AlertsContext';
+import { NoteProvider } from './pages/notes/NoteContext';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -32,7 +33,9 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
         locale={esES}
       >
         <AlertProvider>
-          <App />
+          <NoteProvider>
+            <App />
+          </NoteProvider>
         </AlertProvider>
       </ConfigProvider>
     </QueryClientProvider>

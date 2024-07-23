@@ -7,6 +7,7 @@ import axios from 'axios';
 import AudioEdit from '../audio/AudioEdit';
 import moment from 'moment';
 import SummaryEdit from '../notes/SummaryEdit';
+import { useNote } from '../notes/NoteContext';
 
 interface AlertsModalProps {
   visible: boolean;
@@ -23,6 +24,7 @@ type CreateFileMutationResult = UseMutationResult<FileDto, unknown, CreateFileDt
 
 const AlertsModal: React.FC<AlertsModalProps> = ({ visible, onClose }) => {
   const { selectedAlert } = useAlert();
+  const { note } = useNote();
   const [fragment, setFragment] = useState<Fragment>(new Fragment());
   const [createFragmentDto, setCreateFragmentDto] = useState<CreateFileDto>(new CreateFileDto());
 
@@ -106,6 +108,24 @@ const AlertsModal: React.FC<AlertsModalProps> = ({ visible, onClose }) => {
 
   if (!selectedAlert) return <div>No alert selected</div>;
 
+  function isStepInvalid(): boolean {
+    let value = true;
+    switch (current) {
+      case 0:
+        value = !createFragmentDto.duration || createFragmentDto.duration === 0;
+        break;
+      case 1:
+        value = !note?.id;
+        break;
+      case 2:
+        value = !note?.id;
+        break;
+      default:
+        break;
+    }
+    return value;
+  }
+
   return (
     <Modal
       open={visible}
@@ -126,7 +146,7 @@ const AlertsModal: React.FC<AlertsModalProps> = ({ visible, onClose }) => {
               {current > 0 ? 'Previous' : '_________'}
             </Button>
             {current < steps.length - 1 && (
-              <Button type='primary' onClick={() => next()} size='small' disabled={!createFragmentDto.duration || createFragmentDto.duration === 0}>
+              <Button type='primary' onClick={() => next()} size='small' disabled={isStepInvalid()}>
                 Next
               </Button>
             )}
