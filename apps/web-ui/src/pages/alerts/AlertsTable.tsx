@@ -1,6 +1,6 @@
 import React, { useRef, useState } from 'react';
 import dayjs from 'dayjs';
-import { AlertDto, dateFormat, DateRange } from '@radio-alert/models';
+import { AlertDto, dateFormat, DateRange, transformText } from '@radio-alert/models';
 import { SearchOutlined, EditOutlined } from '@ant-design/icons';
 import type { InputRef, TableColumnsType, TableColumnType, TableProps } from 'antd';
 import { Button, Input, Space, Table } from 'antd';
@@ -221,43 +221,8 @@ const AlertsTable: React.FC<AlertsTableProps> = ({ selectedDates }) => {
       key: 'text',
       ...getColumnSearchProps('text'),
       render: (text, record) => {
-        // Function to check and transform text
-        const transformText = (inputText: string) => {
-          let transformedText = '';
-          let currentIndex = 0;
-
-          while (currentIndex < inputText.length) {
-            let found = false;
-
-            // Sort record.words by length in descending order to prioritize longer phrases
-            const sortedWords = [...record.words].sort((a, b) => b.length - a.length);
-
-            for (const phrase of sortedWords) {
-              // Check if the current segment of text starts with the phrase
-              if (inputText.slice(currentIndex).toLowerCase().startsWith(phrase.toLowerCase())) {
-                // Transform the phrase to uppercase and apply bold style
-                transformedText += `<strong style="text-transform: uppercase;">${inputText.slice(
-                  currentIndex,
-                  currentIndex + phrase.length
-                )}</strong>`;
-                currentIndex += phrase.length;
-                found = true;
-                break; // Break after the first match to avoid overlapping transformations
-              }
-            }
-
-            // If no matching phrase is found, move to the next character
-            if (!found) {
-              transformedText += inputText[currentIndex];
-              currentIndex++;
-            }
-          }
-
-          return transformedText;
-        };
-
         // Apply the transformation
-        const finalTransformedText = transformText(text);
+        const finalTransformedText = transformText(text, record.words);
 
         // Return the transformed text as HTML
         return <div style={{ whiteSpace: 'normal' }} dangerouslySetInnerHTML={{ __html: finalTransformedText }} />;

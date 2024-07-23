@@ -1,6 +1,6 @@
-import { useMemo, useRef } from 'react';
-import { Button, Col, Input, Row, Spin } from 'antd';
-import { GetSummaryDto, GetTranscriptionDto, SummaryDto, TranscriptionDto } from '@radio-alert/models';
+import { useEffect, useMemo, useRef } from 'react';
+import { Button, Col, Form, FormInstance, FormProps, Input, Row, Spin } from 'antd';
+import { GetSummaryDto, GetTranscriptionDto, SummaryDto, TranscriptionDto, transformText } from '@radio-alert/models';
 import TextArea from 'antd/es/input/TextArea';
 import { useAlert } from '../alerts/AlertsContext';
 import { useMutation, UseMutationResult } from 'react-query';
@@ -11,7 +11,17 @@ import { useNote } from './NoteContext';
 type TranscriptionMutationResult = UseMutationResult<TranscriptionDto, unknown, GetTranscriptionDto, unknown>;
 type SummaryMutationResult = UseMutationResult<SummaryDto, unknown, GetSummaryDto, unknown>;
 
-const SummaryEdit: React.FC = () => {
+type FieldType = {
+  index?: string;
+  program?: string;
+  title?: string;
+  summary?: string;
+};
+
+interface SummaryEditProps {
+  form: FormInstance<FieldType>;
+}
+const SummaryEdit: React.FC<SummaryEditProps> = ({ form }) => {
   const { selectedAlert } = useAlert();
   const { note, setNote } = useNote();
   const getSummaryDtoRef = useRef(new GetSummaryDto()); // Replace initialGetSummaryDtoValue with the initial value
@@ -79,9 +89,31 @@ const SummaryEdit: React.FC = () => {
     }
   );
 
+  useEffect(() => {
+    if (summaryData) {
+      form.setFieldsValue({
+        title: summaryData.title,
+        summary: summaryData.summary,
+      });
+    }
+  }, [summaryData, form]);
+
+  const onFinish: FormProps<FieldType>['onFinish'] = values => {
+    console.log('Success:', values);
+  };
+
+  const onFinishFailed: FormProps<FieldType>['onFinishFailed'] = errorInfo => {
+    console.log('Failed:', errorInfo);
+  };
+
+  if (!selectedAlert) return <div>No alert selected</div>;
+
   return waveformUrl ? (
-    <Row align='middle' gutter={[16, 0]}>
+    <Row gutter={[16, 0]}>
       <Col span={12}>
+        <Row style={{ marginBottom: '12px' }}>
+          <div style={{ whiteSpace: 'normal' }} dangerouslySetInnerHTML={{ __html: transformText(selectedAlert.text, selectedAlert.words) }} />
+        </Row>
         <Row align='middle' justify='space-between'>
           <audio src={waveformUrl} controls style={{ width: '90%' }}>
             <track kind='captions' src='captions.vtt' label='Captions' />
@@ -92,6 +124,7 @@ const SummaryEdit: React.FC = () => {
             Texto
           </Button>
         </Row>
+
         {errorTranscription ? (
           <div>Error cargando la transcripción</div>
         ) : (
@@ -100,7 +133,7 @@ const SummaryEdit: React.FC = () => {
             <TextArea
               value={transcriptionData?.text}
               placeholder='Transcripción...'
-              autoSize={{ minRows: 8, maxRows: 20 }}
+              autoSize={{ minRows: 10, maxRows: 20 }}
               style={{ height: '100%' }}
             />
           </Spin>
@@ -110,12 +143,38 @@ const SummaryEdit: React.FC = () => {
         {errorSummary ? (
           <div>Error cargando el resumen</div>
         ) : (
-          <Spin spinning={isLoadingSummary || isLoadingTranscription}>
-            <Title level={4}>Título</Title>
-            <Input value={summaryData?.title} placeholder='Título...' />
-            <Title level={4}>Resumen</Title>
-            <TextArea value={summaryData?.summary} placeholder='Resumen...' autoSize={{ minRows: 6, maxRows: 20 }} style={{ height: '100%' }} />
-          </Spin>
+          <Form
+            name='basic'
+            layout='vertical'
+            labelCol={{ span: 8 }}
+            wrapperCol={{ span: 20 }}
+            initialValues={{ title: summaryData?.title, summary: summaryData?.summary }}
+            onFinish={onFinish}
+            onFinishFailed={onFinishFailed}
+            autoComplete='off'
+            form={form}
+          >
+            <Form.Item<FieldType> label='Indice' name='index' rules={[{ required: true }]}>
+              <Input placeholder='NOTA_XX' />
+            </Form.Item>
+
+            <Form.Item<FieldType> label='Programa' name='program' rules={[{ required: true }]}>
+              <Input placeholder='Programa...' />
+            </Form.Item>
+            <Spin spinning={isLoadingSummary || isLoadingTranscription}>
+              <Form.Item<FieldType> label='Titular' name='title' rules={[{ required: true }]}>
+                <Input placeholder='Titular...' />
+              </Form.Item>
+              <Form.Item<FieldType> label='Resumen' name='summary' rules={[{ required: true }]}>
+                <TextArea placeholder='Resumen...' autoSize={{ minRows: 6, maxRows: 20 }} style={{ height: '100%' }} />
+              </Form.Item>
+            </Spin>
+            <Form.Item wrapperCol={{ offset: 8, span: 16 }}>
+              <Button type='primary' htmlType='submit'>
+                Submit
+              </Button>
+            </Form.Item>
+          </Form>
         )}
       </Col>
     </Row>

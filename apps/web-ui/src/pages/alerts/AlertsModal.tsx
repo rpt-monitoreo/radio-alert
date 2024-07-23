@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Button, Col, message, Modal, Row, Spin, Steps } from 'antd';
+import { Button, Col, Form, message, Modal, Row, Spin, Steps } from 'antd';
 import { useAlert } from './AlertsContext';
 import { useMutation, UseMutationResult } from 'react-query';
 import { CreateFileDto, FileDto, Fragment } from '@radio-alert/models';
@@ -24,9 +24,10 @@ type CreateFileMutationResult = UseMutationResult<FileDto, unknown, CreateFileDt
 
 const AlertsModal: React.FC<AlertsModalProps> = ({ visible, onClose }) => {
   const { selectedAlert } = useAlert();
-  const { note } = useNote();
+  const { note, setNote } = useNote();
   const [fragment, setFragment] = useState<Fragment>(new Fragment());
   const [createFragmentDto, setCreateFragmentDto] = useState<CreateFileDto>(new CreateFileDto());
+  const [formSummary] = Form.useForm();
 
   const createSegmentDto = useMemo(
     () => ({
@@ -72,7 +73,20 @@ const AlertsModal: React.FC<AlertsModalProps> = ({ visible, onClose }) => {
   }, [createFragmentDto, createFragmentFile, current]);
 
   const next = () => {
-    setCurrent(current + 1);
+    if (current === 1) {
+      formSummary.validateFields().then(values => {
+        setNote({
+          ...note,
+          index: values.index,
+          program: values.program,
+          title: values.title,
+          summary: values.summary,
+        });
+        setCurrent(current + 1);
+      });
+    } else {
+      setCurrent(current + 1);
+    }
   };
 
   const prev = () => {
@@ -95,7 +109,7 @@ const AlertsModal: React.FC<AlertsModalProps> = ({ visible, onClose }) => {
       content: errorFragment ? (
         <div>Error loading Fragment</div>
       ) : (
-        segmentData && <Spin spinning={isLoadingFragment}>{fragmentData && <SummaryEdit></SummaryEdit>}</Spin>
+        segmentData && <Spin spinning={isLoadingFragment}>{fragmentData && <SummaryEdit form={formSummary}></SummaryEdit>}</Spin>
       ),
     },
     {
@@ -129,7 +143,7 @@ const AlertsModal: React.FC<AlertsModalProps> = ({ visible, onClose }) => {
   return (
     <Modal
       open={visible}
-      title={selectedAlert.clientName}
+      title={`${selectedAlert.platform} - ${selectedAlert.clientName}`}
       loading={isLoadingSegment}
       onCancel={onClose}
       onClose={onClose}

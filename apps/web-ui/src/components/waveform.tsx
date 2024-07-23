@@ -5,6 +5,7 @@ import RegionsPlugin from 'wavesurfer.js/dist/plugins/regions.js';
 
 import TimelinePlugin from 'wavesurfer.js/dist/plugins/timeline.js';
 import Minimap from 'wavesurfer.js/dist/plugins/minimap.js';
+import ZoomPlugin from 'wavesurfer.js/dist/plugins/zoom.js';
 
 interface WaveformProps {
   url: string;
@@ -27,7 +28,7 @@ const Waveform: React.FC<WaveformProps> = ({ url, onSelection }) => {
       barGap: 1,
       barRadius: 1,
       barHeight: 0.7,
-      minPxPerSec: 2, //El ancho del audio
+      minPxPerSec: 4, //El ancho del audio
       autoCenter: true,
       autoScroll: true,
       mediaControls: true,
@@ -38,11 +39,17 @@ const Waveform: React.FC<WaveformProps> = ({ url, onSelection }) => {
         insertPosition: 'beforebegin',
         timeInterval: 5,
         primaryLabelInterval: 60,
-        secondaryLabelInterval: 30,
+        secondaryLabelInterval: 60,
         style: {
-          fontSize: '18px',
+          fontSize: '16px',
           color: '#2D5B88',
         },
+      })
+    );
+
+    wavesurfer.registerPlugin(
+      ZoomPlugin.create({
+        scale: 0.5,
       })
     );
 
@@ -112,8 +119,7 @@ const Waveform: React.FC<WaveformProps> = ({ url, onSelection }) => {
 
         const region1 = wsRegions.getRegions()[0];
         const region2 = wsRegions.getRegions()[1];
-        const shouldUpdateRegion1 =
-          region1.start === 0 || (region2.start !== 0 && Math.abs(region1.start - pos) < Math.abs(region2.start - pos));
+        const shouldUpdateRegion1 = region1.start === 0 || (region2.start !== 0 && Math.abs(region1.start - pos) < Math.abs(region2.start - pos));
 
         if (shouldUpdateRegion1) {
           region1.setOptions({ start: pos });

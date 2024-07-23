@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import Waveform from '../../components/waveform';
 import { Col, Row } from 'antd';
-import { CreateFileDto, getDateFromFile, FileDto, Fragment } from '@radio-alert/models';
+import { CreateFileDto, getDateFromFile, FileDto, Fragment, transformText } from '@radio-alert/models';
 import BarComponent from '../../components/Bar';
 import moment from 'moment';
 import { useAlert } from '../alerts/AlertsContext';
@@ -55,8 +55,8 @@ const AudioEdit: React.FC<AudioEditProps> = ({ audioFile, segmentData, onCreateF
     const startTime = new Date(selectedAlert.startTime ?? '');
     const endTime = new Date(selectedAlert.endTime ?? '');
 
-    const startSecond = (startTime.getTime() - fileTime.getTime()) / 1000 - segmentData.startSeconds;
-    const endSecond = (endTime.getTime() - fileTime.getTime()) / 1000 - segmentData.startSeconds;
+    const startSecond = 10 + (startTime.getTime() - fileTime.getTime()) / 1000 - segmentData.startSeconds;
+    const endSecond = 10 + (endTime.getTime() - fileTime.getTime()) / 1000 - segmentData.startSeconds;
 
     const startPosition = (startSecond * 100) / segmentData.duration;
     const endPosition = (endSecond * 100) / segmentData.duration;
@@ -67,6 +67,9 @@ const AudioEdit: React.FC<AudioEditProps> = ({ audioFile, segmentData, onCreateF
 
   return (
     <Row align='middle'>
+      <Col span={24} style={{ marginBottom: '12px' }}>
+        <div style={{ whiteSpace: 'normal' }} dangerouslySetInnerHTML={{ __html: transformText(selectedAlert.text, selectedAlert.words) }} />
+      </Col>
       <Col span={24}>
         <Waveform url={url} onSelection={onSelection} />
         <BarComponent startPosition={startPosition} endPosition={endPosition} />
