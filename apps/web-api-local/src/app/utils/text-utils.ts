@@ -1,4 +1,4 @@
-import { Transcription } from '../alerts/transcription.entity';
+import { Transcription } from '../entities/transcription.entity';
 import nlp from 'compromise';
 
 function mergeOverlappingTexts(textSegmentsIn: Transcription[], words: string[]): string {

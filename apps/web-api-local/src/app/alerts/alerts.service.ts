@@ -1,14 +1,13 @@
 // alerta.service.ts
 import { Injectable } from '@nestjs/common';
 import { DataSource, FindOneOptions, FindOptionsWhere, MongoRepository } from 'typeorm';
-import { Alert } from './alerts.entity';
 import { GetAlertsDto, GetSummaryDto, GetTranscriptionDto, SummaryDto, TranscriptionDto, ValidDatesDto } from '@radio-alert/models';
-import { Transcription } from './transcription.entity';
 import OpenAI from 'openai';
 import { exec } from 'child_process';
 import path from 'path';
 import { ConfigService } from '@nestjs/config';
-import { Note } from './note.entity';
+import { Alert, Note, Transcription } from '../entities';
+import { InjectDataSource } from '@nestjs/typeorm';
 
 @Injectable()
 export class AlertsService {
@@ -17,7 +16,7 @@ export class AlertsService {
   noteRepo: MongoRepository<Note>;
   openai: OpenAI;
 
-  constructor(private dataSource: DataSource, configService: ConfigService) {
+  constructor(@InjectDataSource('monitoring') private readonly dataSource: DataSource, configService: ConfigService) {
     this.alertsRepo = this.dataSource.getMongoRepository(Alert);
     this.transcriptRepo = this.dataSource.getMongoRepository(Transcription);
     this.noteRepo = this.dataSource.getMongoRepository(Note);

@@ -6,26 +6,37 @@ import { AudioModule } from './audio/audio.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AlertsModule } from './alerts/alerts.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { Alert } from './alerts/alerts.entity';
-import { Transcription } from './alerts/transcription.entity';
-import { Note } from './alerts/note.entity';
+import { SettingsModule } from './settings/settings.module';
+import { Alert, Note, Platform, Transcription } from './entities';
 
 @Module({
   imports: [
     ConfigModule.forRoot(),
     TypeOrmModule.forRootAsync({
+      name: 'monitoring',
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => ({
         type: 'mongodb',
         url: configService.get<string>('MONGODB_URI') + '/monitoring',
-        entities: [Alert, Transcription, Note],
-        synchronize: true,
+        entities: [Alert, Note, Transcription],
+        synchronize: false,
       }),
       inject: [ConfigService],
     }),
-
+    TypeOrmModule.forRootAsync({
+      name: 'config',
+      imports: [ConfigModule],
+      useFactory: async (configService: ConfigService) => ({
+        type: 'mongodb',
+        url: configService.get<string>('MONGODB_URI') + '/config',
+        entities: [Platform],
+        synchronize: false,
+      }),
+      inject: [ConfigService],
+    }),
     AudioModule,
     AlertsModule,
+    SettingsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
