@@ -65,6 +65,16 @@ const AlertsModal: React.FC<AlertsModalProps> = ({ visible, onClose }) => {
     setCreateFragmentDto(createFileDto);
   };
 
+  useEffect(() => {
+    if (!fragment) return;
+    setNote({
+      ...note,
+      startTime: fragment.startTime,
+      duration: fragment.duration,
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fragment]);
+
   const [current, setCurrent] = useState(0);
   useEffect(() => {
     if (current === 1) {

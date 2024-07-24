@@ -1,12 +1,15 @@
-import { useEffect, useMemo, useRef } from 'react';
-import { Button, Col, Form, FormInstance, FormProps, Input, Row, Spin } from 'antd';
-import { GetSummaryDto, GetTranscriptionDto, SummaryDto, TranscriptionDto, transformText } from '@radio-alert/models';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { Button, Col, Form, FormInstance, FormProps, Input, Row, Select, Spin } from 'antd';
+import { GetSummaryDto, GetTranscriptionDto, PlatformDto, SummaryDto, TranscriptionDto, transformText } from '@radio-alert/models';
 import TextArea from 'antd/es/input/TextArea';
 import { useAlert } from '../alerts/AlertsContext';
-import { useMutation, UseMutationResult } from 'react-query';
+import { useMutation, UseMutationResult, useQuery, UseQueryResult } from 'react-query';
 import axios from 'axios';
 import Title from 'antd/es/typography/Title';
 import { useNote } from './NoteContext';
+import moment from 'moment';
+
+const { Option } = Select;
 
 type TranscriptionMutationResult = UseMutationResult<TranscriptionDto, unknown, GetTranscriptionDto, unknown>;
 type SummaryMutationResult = UseMutationResult<SummaryDto, unknown, GetSummaryDto, unknown>;
@@ -26,6 +29,8 @@ const SummaryEdit: React.FC<SummaryEditProps> = ({ form }) => {
   const { note, setNote } = useNote();
   const getSummaryDtoRef = useRef(new GetSummaryDto()); // Replace initialGetSummaryDtoValue with the initial value
 
+  const [programOptions, setProgramOptions] = useState<string[]>([]);
+
   const waveformUrl = useMemo(
     () => `${import.meta.env.VITE_API_LOCAL}audio/fetchByName/fragment_${selectedAlert?.id}?v=${Date.now()}`,
     [selectedAlert]
@@ -40,6 +45,45 @@ const SummaryEdit: React.FC<SummaryEditProps> = ({ form }) => {
         : new GetTranscriptionDto(),
     [selectedAlert]
   );
+
+  const {
+    data: platforms,
+    isLoading: isLoadingPlatforms,
+    error: errorPlatforms,
+  }: UseQueryResult<PlatformDto[]> = useQuery({
+    queryKey: ['platforms'],
+    queryFn: async () => await axios.get(`${import.meta.env.VITE_API_LOCAL}settings/get-platforms/${selectedAlert?.media}`).then(res => res.data),
+  });
+
+  useEffect(() => {
+    const slots = platforms?.filter(platform => platform.name === selectedAlert?.platform)[0]?.slots;
+    const startTime = moment(note?.startTime);
+    const dayOfWeek = startTime.day();
+
+    let dayType;
+    if (dayOfWeek === 0) {
+      dayType = 'sunday';
+    } else if (dayOfWeek === 6) {
+      dayType = 'saturday';
+    } else {
+      dayType = 'weekday';
+    }
+
+    const defaultSlot = slots
+      ?.filter(slot => slot.day === dayType)
+      .find(slot => {
+        const slotStartTime = moment(slot.start, 'HH:mm');
+        const slotEndTime = moment(slot.end, 'HH:mm');
+        // Check if startTime is between slot's start and end times, inclusive
+        return startTime.isBetween(slotStartTime, slotEndTime, null, '[]');
+      });
+
+    form.setFieldsValue({
+      program: defaultSlot?.label,
+    });
+    if (!slots) return;
+    setProgramOptions(slots.map(slot => slot.label));
+  }, [form, platforms, selectedAlert?.platform, note]);
 
   const {
     mutateAsync: generateTranscription,
@@ -154,13 +198,46 @@ const SummaryEdit: React.FC<SummaryEditProps> = ({ form }) => {
             autoComplete='off'
             form={form}
           >
-            <Form.Item<FieldType> label='Indice' name='index' rules={[{ required: true }]}>
-              <Input placeholder='NOTA_XX' />
+            <Form.Item<FieldType>
+              label='NOTA'
+              name='index'
+              rules={[
+                { required: true },
+                {
+                  validator: (_, value) => (/^\d*$/.test(value) ? Promise.resolve() : Promise.reject(new Error('Debe ser numérico'))),
+                  message: 'Debe ser numérico',
+                },
+                {
+                  validator: (_, value) =>
+                    value && value.length >= 2 ? Promise.resolve() : Promise.reject(new Error('Debe tener al menos 2 números')),
+                  message: 'Debe tener al menos 2 números',
+                },
+              ]}
+              validateTrigger='onChange'
+            >
+              <Input placeholder='XX' />
             </Form.Item>
 
-            <Form.Item<FieldType> label='Programa' name='program' rules={[{ required: true }]}>
-              <Input placeholder='Programa...' />
-            </Form.Item>
+            {errorPlatforms ? (
+              <div>Error cargando plataformas</div>
+            ) : (
+              <Spin spinning={isLoadingPlatforms}>
+                <Form.Item<FieldType> label='Programa' name='program' rules={[{ required: true }]}>
+                  <Select
+                    placeholder='Seleccione un programa...'
+                    showSearch
+                    filterOption={(input, option) => String(option?.value)?.toLowerCase().includes(input.toLowerCase())}
+                  >
+                    {programOptions.map((option, _) => (
+                      <Option key={option} value={option}>
+                        {option}
+                      </Option>
+                    ))}
+                  </Select>
+                </Form.Item>
+              </Spin>
+            )}
+
             <Spin spinning={isLoadingSummary || isLoadingTranscription}>
               <Form.Item<FieldType> label='Titular' name='title' rules={[{ required: true }]}>
                 <Input placeholder='Titular...' />
@@ -169,11 +246,6 @@ const SummaryEdit: React.FC<SummaryEditProps> = ({ form }) => {
                 <TextArea placeholder='Resumen...' autoSize={{ minRows: 6, maxRows: 20 }} style={{ height: '100%' }} />
               </Form.Item>
             </Spin>
-            <Form.Item wrapperCol={{ offset: 8, span: 16 }}>
-              <Button type='primary' htmlType='submit'>
-                Submit
-              </Button>
-            </Form.Item>
           </Form>
         )}
       </Col>
