@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { Button, Col, Form, message, Modal, Row, Spin, Steps } from 'antd';
 import { useAlert } from './AlertsContext';
 import { useMutation, UseMutationResult } from 'react-query';
-import { CreateFileDto, FileDto, Fragment } from '@radio-alert/models';
+import { CreateFileDto, FileDto, Fragment, NoteDto } from '@radio-alert/models';
 import axios from 'axios';
 import AudioEdit from '../audio/AudioEdit';
 import moment from 'moment';
@@ -52,13 +52,24 @@ const AlertsModal: React.FC<AlertsModalProps> = ({ visible, onClose }) => {
     error: errorFragment,
   }: CreateFileMutationResult = useCreateFileMutation(createFragmentDto);
 
+  const {
+    mutateAsync: setNoteMutation,
+    data: noteData,
+    isLoading: isLoadingNote,
+    error: errorNote,
+  }: UseMutationResult<NoteDto, unknown, NoteDto, unknown> = useMutation<NoteDto, unknown, NoteDto, unknown>(async () => {
+    const response = await axios.post(`${import.meta.env.VITE_API_LOCAL}notes/set-note`, note);
+    return response.data;
+  });
+
   useEffect(() => {
     if (visible) {
+      setNote({});
       setFragment(new Fragment());
       setCreateFragmentDto(new CreateFileDto());
       createSegmentFile(createSegmentDto);
     }
-  }, [visible, createSegmentFile, createSegmentDto]);
+  }, [visible, createSegmentFile, createSegmentDto, setNote]);
 
   const handleCreateFragment = (createFileDto: CreateFileDto, fragment: Fragment) => {
     setFragment(fragment);
@@ -69,8 +80,8 @@ const AlertsModal: React.FC<AlertsModalProps> = ({ visible, onClose }) => {
     if (!fragment) return;
     setNote({
       ...note,
-      startTime: fragment.startTime,
-      duration: fragment.duration,
+      startTime: fragment.startTime?.toISOString(),
+      duration: fragment?.duration?.seconds(),
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fragment]);
@@ -99,10 +110,27 @@ const AlertsModal: React.FC<AlertsModalProps> = ({ visible, onClose }) => {
     }
   };
 
+  useEffect(() => {
+    if (current === 2) {
+      if (!note) return;
+      setNoteMutation(note);
+    }
+  }, [current, note, setNoteMutation]);
+
   const prev = () => {
     setCurrent(current - 1);
   };
 
+  function objectToPrettyHtml(obj: unknown) {
+    // Convert object to JSON string with indentation
+    let jsonString = JSON.stringify(obj, null, 2);
+
+    // Escape HTML special characters
+    jsonString = jsonString.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+    // Wrap in <pre> tag for formatting
+    return `<pre>${jsonString}</pre>`;
+  }
   const steps = [
     {
       title: 'Editar Audio',
@@ -124,7 +152,11 @@ const AlertsModal: React.FC<AlertsModalProps> = ({ visible, onClose }) => {
     },
     {
       title: 'Nota',
-      content: 'Last-content22',
+      content: errorNote ? (
+        <div>Error loading Note</div>
+      ) : (
+        noteData && <Spin spinning={isLoadingNote}>{noteData && objectToPrettyHtml(noteData)}</Spin>
+      ),
     },
   ];
 
@@ -160,6 +192,7 @@ const AlertsModal: React.FC<AlertsModalProps> = ({ visible, onClose }) => {
       width='100vw'
       destroyOnClose={true}
       footer={null}
+      maskClosable={false}
     >
       <>
         <Steps current={current} items={items} size='small' />

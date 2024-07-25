@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Button, Col, Form, FormInstance, FormProps, Input, Row, Select, Spin } from 'antd';
-import { GetSummaryDto, GetTranscriptionDto, PlatformDto, SummaryDto, TranscriptionDto, transformText } from '@radio-alert/models';
+import { GetSummaryDto, GetTranscriptionDto, PlatformDto, Slot, SummaryDto, TranscriptionDto, transformText } from '@radio-alert/models';
 import TextArea from 'antd/es/input/TextArea';
 import { useAlert } from '../alerts/AlertsContext';
 import { useMutation, UseMutationResult, useQuery, UseQueryResult } from 'react-query';
@@ -17,6 +17,7 @@ type SummaryMutationResult = UseMutationResult<SummaryDto, unknown, GetSummaryDt
 type FieldType = {
   index?: string;
   program?: string;
+  audioLabel?: string;
   title?: string;
   summary?: string;
 };
@@ -28,8 +29,9 @@ const SummaryEdit: React.FC<SummaryEditProps> = ({ form }) => {
   const { selectedAlert } = useAlert();
   const { note, setNote } = useNote();
   const getSummaryDtoRef = useRef(new GetSummaryDto()); // Replace initialGetSummaryDtoValue with the initial value
-
   const [programOptions, setProgramOptions] = useState<string[]>([]);
+
+  const slotsRef = useRef<Slot[]>([]);
 
   const waveformUrl = useMemo(
     () => `${import.meta.env.VITE_API_LOCAL}audio/fetchByName/fragment_${selectedAlert?.id}?v=${Date.now()}`,
@@ -56,7 +58,7 @@ const SummaryEdit: React.FC<SummaryEditProps> = ({ form }) => {
   });
 
   useEffect(() => {
-    const slots = platforms?.filter(platform => platform.name === selectedAlert?.platform)[0]?.slots;
+    slotsRef.current = platforms?.filter(platform => platform.name === selectedAlert?.platform)[0]?.slots ?? [];
     const startTime = moment(note?.startTime);
     const dayOfWeek = startTime.day();
 
@@ -69,7 +71,7 @@ const SummaryEdit: React.FC<SummaryEditProps> = ({ form }) => {
       dayType = 'weekday';
     }
 
-    const defaultSlot = slots
+    const defaultSlot = slotsRef.current
       ?.filter(slot => slot.day === dayType)
       .find(slot => {
         const slotStartTime = moment(slot.start, 'HH:mm');
@@ -81,9 +83,15 @@ const SummaryEdit: React.FC<SummaryEditProps> = ({ form }) => {
     form.setFieldsValue({
       program: defaultSlot?.label,
     });
-    if (!slots) return;
-    setProgramOptions(slots.map(slot => slot.label));
-  }, [form, platforms, selectedAlert?.platform, note]);
+    setNote({
+      ...note,
+      audioLabel: defaultSlot?.audioLabel,
+    });
+
+    if (slotsRef.current.length === 0) return;
+    setProgramOptions(slotsRef.current.map(slot => slot.label));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [form, platforms, selectedAlert?.platform]);
 
   const {
     mutateAsync: generateTranscription,
@@ -141,6 +149,14 @@ const SummaryEdit: React.FC<SummaryEditProps> = ({ form }) => {
       });
     }
   }, [summaryData, form]);
+
+  const handleProgramChange = (value: string) => {
+    const slot = slotsRef.current.find(slot => slot.label === value);
+    setNote({
+      ...note,
+      audioLabel: slot?.audioLabel,
+    });
+  };
 
   const onFinish: FormProps<FieldType>['onFinish'] = values => {
     console.log('Success:', values);
@@ -227,6 +243,7 @@ const SummaryEdit: React.FC<SummaryEditProps> = ({ form }) => {
                     placeholder='Seleccione un programa...'
                     showSearch
                     filterOption={(input, option) => String(option?.value)?.toLowerCase().includes(input.toLowerCase())}
+                    onChange={handleProgramChange}
                   >
                     {programOptions.map((option, _) => (
                       <Option key={option} value={option}>

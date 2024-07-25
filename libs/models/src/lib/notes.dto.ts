@@ -1,5 +1,3 @@
-import moment from 'moment';
-
 export class NoteDto {
   readonly id?: string;
   readonly text?: string;
@@ -10,6 +8,7 @@ export class NoteDto {
   readonly media?: string;
   readonly platform?: string;
   readonly clientName?: string;
-  readonly startTime?: Date;
-  readonly duration?: moment.Duration;
+  readonly startTime?: string;
+  readonly duration?: number;
+  readonly audioLabel?: string;
 }
