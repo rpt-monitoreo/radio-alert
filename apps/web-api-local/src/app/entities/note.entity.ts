@@ -15,5 +15,20 @@ export class Note {
   title: string;
 
   @Column()
+  index: string;
+
+  @Column()
+  program: string;
+
+  @Column()
+  startTime: string;
+
+  @Column()
+  duration: number;
+
+  @Column()
   alert_id: string;
+
+  @Column()
+  audioLabel: string;
 }

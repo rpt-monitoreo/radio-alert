@@ -8,6 +8,7 @@ import { AlertsModule } from './alerts/alerts.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { SettingsModule } from './settings/settings.module';
 import { Alert, Note, Platform, Transcription } from './entities';
+import { NotesModule } from './notes/notes.module';
 
 @Module({
   imports: [
@@ -36,6 +37,7 @@ import { Alert, Note, Platform, Transcription } from './entities';
     }),
     AudioModule,
     AlertsModule,
+    NotesModule,
     SettingsModule,
   ],
   controllers: [AppController],
