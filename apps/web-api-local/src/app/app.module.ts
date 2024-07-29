@@ -12,7 +12,10 @@ import { NotesModule } from './notes/notes.module';
 
 @Module({
   imports: [
-    ConfigModule.forRoot(),
+    ConfigModule.forRoot({
+      isGlobal: true,
+      envFilePath: '.env',
+    }),
     TypeOrmModule.forRootAsync({
       name: 'monitoring',
       imports: [ConfigModule],
