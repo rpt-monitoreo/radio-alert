@@ -12,15 +12,15 @@ const ParentComponent = () => {
 
   return url ? (
     <div>
-      <Waveform url={url} onSelection={onSelection} edit={readonly} />
+      <Waveform url={url} onSelection={onSelection} />
 
       <Switch
         style={{
           marginBlockEnd: 16,
         }}
         checked={readonly}
-        checkedChildren="Editar"
-        unCheckedChildren="Lectura"
+        checkedChildren='Editar'
+        unCheckedChildren='Lectura'
         onChange={setReadonly}
       />
     </div>

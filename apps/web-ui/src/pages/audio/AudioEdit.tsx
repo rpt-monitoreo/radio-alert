@@ -26,14 +26,14 @@ const AudioEdit: React.FC<AudioEditProps> = ({ audioFile, segmentData, onCreateF
 
       setFragment(prevFragment => ({
         ...prevFragment,
-        startTime: new Date(fileTime.getTime() + (segmentData.startSeconds + start) * 1000),
+        startTime: new Date(fileTime.getTime() + segmentData.startSeconds * 1000),
         duration: moment.duration(end - start, 'seconds'),
       }));
 
       setCreateFileDto(prevCreateFileDto => ({
         ...prevCreateFileDto,
         alert: selectedAlert,
-        startSecond: segmentData.startSeconds + start,
+        startSecond: segmentData.startSeconds,
         output: `fragment_${selectedAlert?.id}`,
         duration: end - start,
       }));
@@ -68,7 +68,10 @@ const AudioEdit: React.FC<AudioEditProps> = ({ audioFile, segmentData, onCreateF
   return (
     <Row align='middle'>
       <Col span={24} style={{ marginBottom: '12px' }}>
-        <div style={{ whiteSpace: 'normal' }} dangerouslySetInnerHTML={{ __html: transformText(selectedAlert.text, selectedAlert.words) }} />
+        <div
+          style={{ whiteSpace: 'normal' }}
+          dangerouslySetInnerHTML={{ __html: transformText(selectedAlert.text ?? '', selectedAlert.words ?? []) }}
+        />
       </Col>
       <Col span={24}>
         <Waveform url={url} onSelection={onSelection} />

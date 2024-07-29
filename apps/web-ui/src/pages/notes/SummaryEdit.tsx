@@ -62,7 +62,7 @@ const SummaryEdit: React.FC<SummaryEditProps> = ({ form }) => {
     const startTime = moment(note?.startTime);
     const dayOfWeek = startTime.day();
 
-    let dayType;
+    let dayType: string;
     if (dayOfWeek === 0) {
       dayType = 'sunday';
     } else if (dayOfWeek === 6) {
@@ -89,7 +89,7 @@ const SummaryEdit: React.FC<SummaryEditProps> = ({ form }) => {
     });
 
     if (slotsRef.current.length === 0) return;
-    setProgramOptions(slotsRef.current.map(slot => slot.label));
+    setProgramOptions(slotsRef.current.map(slot => slot.label ?? ''));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [form, platforms, selectedAlert?.platform]);
 
@@ -172,7 +172,10 @@ const SummaryEdit: React.FC<SummaryEditProps> = ({ form }) => {
     <Row gutter={[16, 0]}>
       <Col span={12}>
         <Row style={{ marginBottom: '12px' }}>
-          <div style={{ whiteSpace: 'normal' }} dangerouslySetInnerHTML={{ __html: transformText(selectedAlert.text, selectedAlert.words) }} />
+          <div
+            style={{ whiteSpace: 'normal' }}
+            dangerouslySetInnerHTML={{ __html: transformText(selectedAlert.text ?? '', selectedAlert.words ?? []) }}
+          />
         </Row>
         <Row align='middle' justify='space-between'>
           <audio src={waveformUrl} controls style={{ width: '90%' }}>

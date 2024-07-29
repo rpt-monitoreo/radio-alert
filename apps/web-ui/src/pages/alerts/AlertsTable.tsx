@@ -89,11 +89,15 @@ const AlertsTable: React.FC<AlertsTableProps> = ({ selectedDates }) => {
       </div>
     ),
     filterIcon: (filtered: boolean) => <SearchOutlined style={{ color: filtered ? '#1677ff' : undefined }} />,
-    onFilter: (value, record) =>
-      record[dataIndex]
+    onFilter: (value, record) => {
+      if (!record) return false;
+      const recordValue = record[dataIndex];
+      if (recordValue === undefined || recordValue === null) return false;
+      return recordValue
         .toString()
         .toLowerCase()
-        .includes((value as string).toLowerCase()),
+        .includes((value as string).toLowerCase());
+    },
     onFilterDropdownOpenChange: visible => {
       if (visible) {
         setTimeout(() => searchInput.current?.select(), 100);
@@ -161,8 +165,8 @@ const AlertsTable: React.FC<AlertsTableProps> = ({ selectedDates }) => {
         { text: 'Ecopetrol', value: 'Ecopetrol' },
         { text: 'Anthony', value: 'Anthony' },
       ],
-      onFilter: (value, record) => record.clientName.includes(value as string),
-      sorter: (a, b) => a.clientName.length - b.clientName.length,
+      onFilter: (value, record) => (record.clientName ?? '').includes(value as string),
+      sorter: (a, b) => (a.clientName ?? '').length - (b.clientName ?? '').length,
       ellipsis: true,
       width: '100px',
     },
@@ -171,7 +175,7 @@ const AlertsTable: React.FC<AlertsTableProps> = ({ selectedDates }) => {
       dataIndex: 'platform',
       key: 'platform',
       ...getColumnSearchProps('platform'),
-      sorter: (a, b) => a.platform.length - b.platform.length,
+      sorter: (a, b) => (a.platform ?? '').length - (b.platform ?? '').length,
       ellipsis: true,
       width: '150px',
     },
@@ -201,8 +205,8 @@ const AlertsTable: React.FC<AlertsTableProps> = ({ selectedDates }) => {
         { text: 'Nueva', value: 'Nueva' },
         { text: 'RepetidaOtraPlataforma', value: 'RepetidaOtraPlataforma' },
       ],
-      onFilter: (value, record) => record.type.includes(value as string),
-      sorter: (a, b) => a.type.length - b.type.length,
+      onFilter: (value, record) => (record.type ?? '').includes(value as string),
+      sorter: (a, b) => (a.type ?? '').length - (b.type ?? '').length,
       ellipsis: true,
       width: '150px',
     },
@@ -222,7 +226,7 @@ const AlertsTable: React.FC<AlertsTableProps> = ({ selectedDates }) => {
       ...getColumnSearchProps('text'),
       render: (text, record) => {
         // Apply the transformation
-        const finalTransformedText = transformText(text, record.words);
+        const finalTransformedText = transformText(text, record.words ?? []);
 
         // Return the transformed text as HTML
         return <div style={{ whiteSpace: 'normal' }} dangerouslySetInnerHTML={{ __html: finalTransformedText }} />;

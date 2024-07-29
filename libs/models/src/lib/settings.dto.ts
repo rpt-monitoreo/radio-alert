@@ -7,24 +7,24 @@ export enum Day {
 }
 
 export class Slot {
-  day: Day;
+  readonly day?: Day;
 
   /*   @IsString()
   @Matches(/^([01]\d|2[0-3]):([0-5]\d)$/, { message: 'start must be in HH:mm format' }) */
-  start: string;
+  readonly start?: string;
 
   /*  @IsString()
   @Matches(/^([01]\d|2[0-3]):([0-5]\d)$/, { message: 'end must be in HH:mm format' }) */
-  end: string;
+  readonly end?: string;
 
-  label: string;
-  audioLabel: string;
+  readonly label?: string;
+  readonly audioLabel?: string;
 }
 
 export class PlatformDto {
-  id: string;
-  name?: string;
-  url?: string;
-  media?: string;
-  slots?: Slot[];
+  readonly id?: string;
+  readonly name?: string;
+  readonly url?: string;
+  readonly media?: string;
+  readonly slots?: Slot[];
 }
