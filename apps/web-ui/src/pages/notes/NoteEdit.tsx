@@ -6,7 +6,7 @@ interface AudioEditProps {
 const AudioEdit: React.FC<AudioEditProps> = ({ createFileDtoIn }) => {
   const url = `${import.meta.env.VITE_API_LOCAL}audio/fetchByName/${createFileDtoIn.output}`;
 
-  return url ? <div>NOTE_EDIT</div> : <div>Loading...</div>;
+  return url ? <div>NOTE EDIT</div> : <div>Loading...</div>;
 };
 
 export default AudioEdit;
