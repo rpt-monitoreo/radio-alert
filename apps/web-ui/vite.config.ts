@@ -4,11 +4,12 @@ import react from '@vitejs/plugin-react-swc';
 import { nxViteTsPaths } from '@nx/vite/plugins/nx-tsconfig-paths.plugin';
 import { fileURLToPath } from 'url';
 import path from 'path';
+import polyfillNode from 'rollup-plugin-polyfill-node';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig({
-  plugins: [react(), nxViteTsPaths()],
+  plugins: [react(), nxViteTsPaths(), polyfillNode()],
   define: {
     'process.env': {
       NODE_ENV: JSON.stringify(process.env.NODE_ENV ?? 'development'),
