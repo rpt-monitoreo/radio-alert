@@ -3,7 +3,7 @@ import { Button, Col, Form, message, Modal, Row, Spin, Steps } from 'antd';
 import { useAlert } from './AlertsContext';
 import { useMutation, UseMutationResult } from 'react-query';
 import { CreateFileDto, FileDto, Fragment, NoteDto } from '@radio-alert/models';
-import axios from 'axios';
+import api from '../../services/Agent';
 import AudioEdit from '../audio/AudioEdit';
 import moment from 'moment';
 import SummaryEdit from '../notes/SummaryEdit';
@@ -16,7 +16,7 @@ interface AlertsModalProps {
 
 const useCreateFileMutation = (createFileDto: CreateFileDto) => {
   return useMutation<FileDto, unknown, CreateFileDto, unknown>(async () => {
-    const response = await axios.post(`${import.meta.env.VITE_API_LOCAL}audio/createFile`, createFileDto);
+    const response = await api.post(`/audio/createFile`, createFileDto);
     return response.data;
   });
 };
@@ -58,7 +58,7 @@ const AlertsModal: React.FC<AlertsModalProps> = ({ visible, onClose }) => {
     isLoading: isLoadingNote,
     error: errorNote,
   }: UseMutationResult<NoteDto, unknown, NoteDto, unknown> = useMutation<NoteDto, unknown, NoteDto, unknown>(async () => {
-    const response = await axios.post(`${import.meta.env.VITE_API_LOCAL}notes/set-note`, note);
+    const response = await api.post(`/notes/set-note`, note);
     return response.data;
   });
 

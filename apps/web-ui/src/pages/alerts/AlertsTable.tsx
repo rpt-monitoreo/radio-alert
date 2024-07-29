@@ -7,7 +7,7 @@ import { Button, Input, Space, Table } from 'antd';
 import type { FilterDropdownProps } from 'antd/es/table/interface';
 import Highlighter from 'react-highlight-words';
 import AlertsModal from './AlertsModal';
-import axios from 'axios';
+import api from '../../services/Agent';
 import { useQuery, UseQueryResult } from 'react-query';
 import { useAlert } from './AlertsContext';
 
@@ -143,7 +143,7 @@ const AlertsTable: React.FC<AlertsTableProps> = ({ selectedDates }) => {
   }: UseQueryResult<AlertDto[]> = useQuery<AlertDto[]>({
     queryKey: ['alerts', selectedDates],
     queryFn: async () =>
-      await axios
+      await api
         .post(`${import.meta.env.VITE_API_LOCAL}alerts`, {
           startDate: selectedDates?.[0]?.format(dateFormat),
           endDate: selectedDates?.[1]?.format(dateFormat),

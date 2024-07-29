@@ -4,7 +4,7 @@ import { GetSummaryDto, GetTranscriptionDto, PlatformDto, Slot, SummaryDto, Tran
 import TextArea from 'antd/es/input/TextArea';
 import { useAlert } from '../alerts/AlertsContext';
 import { useMutation, UseMutationResult, useQuery, UseQueryResult } from 'react-query';
-import axios from 'axios';
+import api from '../../services/Agent';
 import Title from 'antd/es/typography/Title';
 import { useNote } from './NoteContext';
 import moment from 'moment';
@@ -54,7 +54,7 @@ const SummaryEdit: React.FC<SummaryEditProps> = ({ form }) => {
     error: errorPlatforms,
   }: UseQueryResult<PlatformDto[]> = useQuery({
     queryKey: ['platforms'],
-    queryFn: async () => await axios.get(`${import.meta.env.VITE_API_LOCAL}settings/get-platforms/${selectedAlert?.media}`).then(res => res.data),
+    queryFn: async () => await api.get(`${import.meta.env.VITE_API_LOCAL}settings/get-platforms/${selectedAlert?.media}`).then(res => res.data),
   });
 
   useEffect(() => {
@@ -100,7 +100,7 @@ const SummaryEdit: React.FC<SummaryEditProps> = ({ form }) => {
     error: errorTranscription,
   }: TranscriptionMutationResult = useMutation<TranscriptionDto, unknown, GetTranscriptionDto, unknown>(
     async () => {
-      const response = await axios.post(`${import.meta.env.VITE_API_LOCAL}alerts/getText`, getTranscriptionDto);
+      const response = await api.post(`${import.meta.env.VITE_API_LOCAL}alerts/getText`, getTranscriptionDto);
       return response.data;
     },
     {
@@ -125,7 +125,7 @@ const SummaryEdit: React.FC<SummaryEditProps> = ({ form }) => {
     error: errorSummary,
   }: SummaryMutationResult = useMutation<SummaryDto, unknown, GetSummaryDto, unknown>(
     async () => {
-      const response = await axios.post(`${import.meta.env.VITE_API_LOCAL}alerts/getSummary`, getSummaryDtoRef.current);
+      const response = await api.post(`${import.meta.env.VITE_API_LOCAL}alerts/getSummary`, getSummaryDtoRef.current);
       return response.data;
     },
     {

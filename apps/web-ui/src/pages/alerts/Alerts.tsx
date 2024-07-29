@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { dateFormat, DateRange, ValidDatesDto } from '@radio-alert/models';
 import AlertsTable from './AlertsTable';
 import { useQuery, UseQueryResult } from 'react-query';
-import axios from 'axios';
+import api from '../../services/Agent';
 
 // Asegúrate de tener un formato de fecha válido para dayjs
 
@@ -17,7 +17,7 @@ const Alerts = () => {
     error: errorDates,
   }: UseQueryResult<ValidDatesDto> = useQuery({
     queryKey: ['dates'],
-    queryFn: async () => await axios.post(`${import.meta.env.VITE_API_LOCAL}alerts/dates`, {}).then(res => res.data),
+    queryFn: async () => await api.post(`/alerts/dates`, {}).then(res => res.data),
   });
 
   const [selectedDates, setSelectedDates] = useState<DateRange | null>([dayjs(), dayjs()]);
