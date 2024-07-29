@@ -22,9 +22,8 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  NX_CLOUD_ACCESS_TOKEN: ${{ secrets.NX_CLOUD_ACCESS_TOKEN }}
-  VITE_API: ${{ secrets.VITE_API }}
-  VITE_API_LOCAL: ${{ secrets.VITE_API_LOCAL }}
+  VITE_API: ${{ vars.VITE_API }}
+  VITE_API_LOCAL: ${{ vars.VITE_API_LOCAL }}
 
 jobs:
   # Single deploy job since we're just deploying
@@ -40,12 +39,6 @@ jobs:
         with:
           path: '**/node_modules'
           key: ${{ runner.os }}-modules-${{ hashFiles('**/yarn.lock') }}
-
-      - name: Cache Nx cache
-        uses: actions/cache@v2
-        with:
-          path: '**/.nx/cache'
-          key: ${{ runner.os }}-nx-cache-${{ hashFiles('**/yarn.lock') }}
 
       - name: Set up Node
         uses: actions/setup-node@v3
@@ -71,5 +64,3 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v1
-
-        #API KY gemini AIzaSyCjc11jMgoHFwzuDGxYDIvGMmAs69GrH5Y
