@@ -8,8 +8,10 @@ import path from 'path';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig({
+  plugins: [react(), nxViteTsPaths()],
   define: {
     'process.env': {
+      NODE_ENV: JSON.stringify(process.env.NODE_ENV ?? 'development'),
       VITE_API: JSON.stringify(process.env.VITE_API),
       VITE_API_LOCAL: JSON.stringify(process.env.VITE_API_LOCAL),
     },
@@ -37,7 +39,7 @@ export default defineConfig({
       },
     ],
   },
-  plugins: [react(), nxViteTsPaths()],
+
   base: '/radio-alert',
 
   // Uncomment this if you are using workers.
