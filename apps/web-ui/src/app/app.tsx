@@ -16,7 +16,7 @@ import Alerts from "../pages/alerts/Alerts";
 
 function App() {
   const [pathname, setPathname] = useState("/admin/sub-page1");
-  const base = "/radio-alert";
+
   const settings: Partial<ProSettings> = {
     fixSiderbar: true,
     layout: "mix",
@@ -56,7 +56,7 @@ function App() {
       >
         <Routes>
           <Route
-            path={base + "/alerts"}
+            path={"/alerts"}
             element={
               <RouteCard>
                 <Alerts></Alerts>
@@ -64,7 +64,7 @@ function App() {
             }
           />
           <Route
-            path={base + "/admin/sub-page1"}
+            path={"/admin/sub-page1"}
             element={
               <RouteCard>
                 <div>AQUI DOS</div>
