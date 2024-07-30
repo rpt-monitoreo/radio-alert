@@ -27,7 +27,7 @@ const AudioEdit: React.FC<AudioEditProps> = ({
 }) => {
   const { selectedAlert } = useAlert();
 
-  const url = `${import.meta.env.VITE_API_LOCAL}audio/fetchByName/${audioFile}`;
+  const url = `${import.meta.env.VITE_API_LOCAL}/audio/fetchByName/${audioFile}`;
 
   const [createFileDto, setCreateFileDto] = useState<CreateFileDto>(
     new CreateFileDto()
