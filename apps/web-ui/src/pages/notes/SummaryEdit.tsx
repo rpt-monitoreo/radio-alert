@@ -67,10 +67,7 @@ const SummaryEdit: React.FC<SummaryEditProps> = ({ form }) => {
   const slotsRef = useRef<Slot[]>([]);
 
   const waveformUrl = useMemo(
-    () =>
-      `${import.meta.env.VITE_API_LOCAL}audio/fetchByName/fragment_${
-        selectedAlert?.id
-      }?v=${Date.now()}`,
+    () => `/audio/fetchByName/fragment_${selectedAlert?.id}?v=${Date.now()}`,
     [selectedAlert]
   );
 
@@ -92,11 +89,7 @@ const SummaryEdit: React.FC<SummaryEditProps> = ({ form }) => {
     queryKey: ["platforms"],
     queryFn: async () =>
       await api
-        .get(
-          `${import.meta.env.VITE_API_LOCAL}settings/get-platforms/${
-            selectedAlert?.media
-          }`
-        )
+        .get(`/settings/get-platforms/${selectedAlert?.media}`)
         .then((res) => res.data),
   });
 
@@ -151,10 +144,7 @@ const SummaryEdit: React.FC<SummaryEditProps> = ({ form }) => {
     unknown
   >(
     async () => {
-      const response = await api.post(
-        `${import.meta.env.VITE_API_LOCAL}alerts/getText`,
-        getTranscriptionDto
-      );
+      const response = await api.post(`/alerts/getText`, getTranscriptionDto);
       return response.data;
     },
     {
@@ -185,7 +175,7 @@ const SummaryEdit: React.FC<SummaryEditProps> = ({ form }) => {
   >(
     async () => {
       const response = await api.post(
-        `${import.meta.env.VITE_API_LOCAL}alerts/getSummary`,
+        `/alerts/getSummary`,
         getSummaryDtoRef.current
       );
       return response.data;

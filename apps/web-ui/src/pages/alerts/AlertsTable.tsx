@@ -178,7 +178,7 @@ const AlertsTable: React.FC<AlertsTableProps> = ({ selectedDates }) => {
     queryKey: ["alerts", selectedDates],
     queryFn: async () =>
       await api
-        .post(`${import.meta.env.VITE_API_LOCAL}alerts`, {
+        .post(`/alerts`, {
           startDate: selectedDates?.[0]?.format(dateFormat),
           endDate: selectedDates?.[1]?.format(dateFormat),
           type: ["Nueva", "RepetidaOtraPlataforma"],
