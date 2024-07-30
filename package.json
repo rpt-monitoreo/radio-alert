@@ -5,7 +5,7 @@
     "dev": "turbo dev",
     "lint": "turbo lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
-    "deploy": "gh-pages -d ./apps/media-monitor-ui/dist"
+    "deploy": "gh-pages -d ./apps/web-ui/dist"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",
