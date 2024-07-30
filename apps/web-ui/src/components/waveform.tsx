@@ -81,7 +81,8 @@ const Waveform: React.FC<WaveformProps> = ({ url, onSelection }) => {
       } as any)
     );
 
-    minimap.addEventListener('interaction', () => {
+    
+    (minimap as any).addEventListener('interaction', () => {
       wavesurfer.play();
     });
     return wavesurfer;
@@ -136,7 +137,7 @@ const Waveform: React.FC<WaveformProps> = ({ url, onSelection }) => {
       }
     });
 
-    wsRegions.on('region-updated', _ => {
+    wsRegions.on('region-updated', ()=> {
       const region1 = wsRegions.getRegions()[0];
       const region2 = wsRegions.getRegions()[1];
       onSelection(Math.min(region1.start, region2.start), Math.max(region1.start, region2.start));

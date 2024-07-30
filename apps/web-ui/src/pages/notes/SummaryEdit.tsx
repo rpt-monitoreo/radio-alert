@@ -1,18 +1,51 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { Button, Col, Form, FormInstance, FormProps, Input, Row, Select, Spin } from 'antd';
-import { GetSummaryDto, GetTranscriptionDto, PlatformDto, Slot, SummaryDto, TranscriptionDto, transformText } from '@radio-alert/models';
-import TextArea from 'antd/es/input/TextArea';
-import { useAlert } from '../alerts/AlertsContext';
-import { useMutation, UseMutationResult, useQuery, UseQueryResult } from 'react-query';
-import api from '../../services/Agent';
-import Title from 'antd/es/typography/Title';
-import { useNote } from './NoteContext';
-import moment from 'moment';
+import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  Button,
+  Col,
+  Form,
+  FormInstance,
+  FormProps,
+  Input,
+  Row,
+  Select,
+  Spin,
+} from "antd";
+import {
+  GetSummaryDto,
+  GetTranscriptionDto,
+  PlatformDto,
+  Slot,
+  SummaryDto,
+  TranscriptionDto,
+  transformText,
+} from "@repo/shared/index";
+import TextArea from "antd/es/input/TextArea";
+import { useAlert } from "../alerts/AlertsContext";
+import {
+  useMutation,
+  UseMutationResult,
+  useQuery,
+  UseQueryResult,
+} from "react-query";
+import api from "../../services/Agent";
+import Title from "antd/es/typography/Title";
+import { useNote } from "./NoteContext";
+import moment from "moment";
 
 const { Option } = Select;
 
-type TranscriptionMutationResult = UseMutationResult<TranscriptionDto, unknown, GetTranscriptionDto, unknown>;
-type SummaryMutationResult = UseMutationResult<SummaryDto, unknown, GetSummaryDto, unknown>;
+type TranscriptionMutationResult = UseMutationResult<
+  TranscriptionDto,
+  unknown,
+  GetTranscriptionDto,
+  unknown
+>;
+type SummaryMutationResult = UseMutationResult<
+  SummaryDto,
+  unknown,
+  GetSummaryDto,
+  unknown
+>;
 
 type FieldType = {
   index?: string;
@@ -34,7 +67,10 @@ const SummaryEdit: React.FC<SummaryEditProps> = ({ form }) => {
   const slotsRef = useRef<Slot[]>([]);
 
   const waveformUrl = useMemo(
-    () => `${import.meta.env.VITE_API_LOCAL}audio/fetchByName/fragment_${selectedAlert?.id}?v=${Date.now()}`,
+    () =>
+      `${import.meta.env.VITE_API_LOCAL}audio/fetchByName/fragment_${
+        selectedAlert?.id
+      }?v=${Date.now()}`,
     [selectedAlert]
   );
 
@@ -53,31 +89,41 @@ const SummaryEdit: React.FC<SummaryEditProps> = ({ form }) => {
     isLoading: isLoadingPlatforms,
     error: errorPlatforms,
   }: UseQueryResult<PlatformDto[]> = useQuery({
-    queryKey: ['platforms'],
-    queryFn: async () => await api.get(`${import.meta.env.VITE_API_LOCAL}settings/get-platforms/${selectedAlert?.media}`).then(res => res.data),
+    queryKey: ["platforms"],
+    queryFn: async () =>
+      await api
+        .get(
+          `${import.meta.env.VITE_API_LOCAL}settings/get-platforms/${
+            selectedAlert?.media
+          }`
+        )
+        .then((res) => res.data),
   });
 
   useEffect(() => {
-    slotsRef.current = platforms?.filter(platform => platform.name === selectedAlert?.platform)[0]?.slots ?? [];
+    slotsRef.current =
+      platforms?.filter(
+        (platform) => platform.name === selectedAlert?.platform
+      )[0]?.slots ?? [];
     const startTime = moment(note?.startTime);
     const dayOfWeek = startTime.day();
 
     let dayType: string;
     if (dayOfWeek === 0) {
-      dayType = 'sunday';
+      dayType = "sunday";
     } else if (dayOfWeek === 6) {
-      dayType = 'saturday';
+      dayType = "saturday";
     } else {
-      dayType = 'weekday';
+      dayType = "weekday";
     }
 
     const defaultSlot = slotsRef.current
-      ?.filter(slot => slot.day === dayType)
-      .find(slot => {
-        const slotStartTime = moment(slot.start, 'HH:mm');
-        const slotEndTime = moment(slot.end, 'HH:mm');
+      ?.filter((slot) => slot.day === dayType)
+      .find((slot) => {
+        const slotStartTime = moment(slot.start, "HH:mm");
+        const slotEndTime = moment(slot.end, "HH:mm");
         // Check if startTime is between slot's start and end times, inclusive
-        return startTime.isBetween(slotStartTime, slotEndTime, null, '[]');
+        return startTime.isBetween(slotStartTime, slotEndTime, null, "[]");
       });
 
     form.setFieldsValue({
@@ -89,7 +135,7 @@ const SummaryEdit: React.FC<SummaryEditProps> = ({ form }) => {
     });
 
     if (slotsRef.current.length === 0) return;
-    setProgramOptions(slotsRef.current.map(slot => slot.label ?? ''));
+    setProgramOptions(slotsRef.current.map((slot) => slot.label ?? ""));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [form, platforms, selectedAlert?.platform]);
 
@@ -98,13 +144,21 @@ const SummaryEdit: React.FC<SummaryEditProps> = ({ form }) => {
     data: transcriptionData,
     isLoading: isLoadingTranscription,
     error: errorTranscription,
-  }: TranscriptionMutationResult = useMutation<TranscriptionDto, unknown, GetTranscriptionDto, unknown>(
+  }: TranscriptionMutationResult = useMutation<
+    TranscriptionDto,
+    unknown,
+    GetTranscriptionDto,
+    unknown
+  >(
     async () => {
-      const response = await api.post(`${import.meta.env.VITE_API_LOCAL}alerts/getText`, getTranscriptionDto);
+      const response = await api.post(
+        `${import.meta.env.VITE_API_LOCAL}alerts/getText`,
+        getTranscriptionDto
+      );
       return response.data;
     },
     {
-      onSuccess: transcriptionData => {
+      onSuccess: (transcriptionData) => {
         // Trigger the second mutation when the first one is successful
         if (!selectedAlert || !transcriptionData) return;
         getSummaryDtoRef.current = {
@@ -123,13 +177,21 @@ const SummaryEdit: React.FC<SummaryEditProps> = ({ form }) => {
     data: summaryData,
     isLoading: isLoadingSummary,
     error: errorSummary,
-  }: SummaryMutationResult = useMutation<SummaryDto, unknown, GetSummaryDto, unknown>(
+  }: SummaryMutationResult = useMutation<
+    SummaryDto,
+    unknown,
+    GetSummaryDto,
+    unknown
+  >(
     async () => {
-      const response = await api.post(`${import.meta.env.VITE_API_LOCAL}alerts/getSummary`, getSummaryDtoRef.current);
+      const response = await api.post(
+        `${import.meta.env.VITE_API_LOCAL}alerts/getSummary`,
+        getSummaryDtoRef.current
+      );
       return response.data;
     },
     {
-      onSuccess: summaryData => {
+      onSuccess: (summaryData) => {
         if (!summaryData) return;
         setNote({
           ...note,
@@ -151,19 +213,21 @@ const SummaryEdit: React.FC<SummaryEditProps> = ({ form }) => {
   }, [summaryData, form]);
 
   const handleProgramChange = (value: string) => {
-    const slot = slotsRef.current.find(slot => slot.label === value);
+    const slot = slotsRef.current.find((slot) => slot.label === value);
     setNote({
       ...note,
       audioLabel: slot?.audioLabel,
     });
   };
 
-  const onFinish: FormProps<FieldType>['onFinish'] = values => {
-    console.log('Success:', values);
+  const onFinish: FormProps<FieldType>["onFinish"] = (values) => {
+    console.log("Success:", values);
   };
 
-  const onFinishFailed: FormProps<FieldType>['onFinishFailed'] = errorInfo => {
-    console.log('Failed:', errorInfo);
+  const onFinishFailed: FormProps<FieldType>["onFinishFailed"] = (
+    errorInfo
+  ) => {
+    console.log("Failed:", errorInfo);
   };
 
   if (!selectedAlert) return <div>No alert selected</div>;
@@ -171,19 +235,29 @@ const SummaryEdit: React.FC<SummaryEditProps> = ({ form }) => {
   return waveformUrl ? (
     <Row gutter={[16, 0]}>
       <Col span={12}>
-        <Row style={{ marginBottom: '12px' }}>
+        <Row style={{ marginBottom: "12px" }}>
           <div
-            style={{ whiteSpace: 'normal' }}
-            dangerouslySetInnerHTML={{ __html: transformText(selectedAlert.text ?? '', selectedAlert.words ?? []) }}
+            style={{ whiteSpace: "normal" }}
+            dangerouslySetInnerHTML={{
+              __html: transformText(
+                selectedAlert.text ?? "",
+                selectedAlert.words ?? []
+              ),
+            }}
           />
         </Row>
-        <Row align='middle' justify='space-between'>
-          <audio src={waveformUrl} controls style={{ width: '90%' }}>
-            <track kind='captions' src='captions.vtt' label='Captions' />
+        <Row align="middle" justify="space-between">
+          <audio src={waveformUrl} controls style={{ width: "90%" }}>
+            <track kind="captions" src="captions.vtt" label="Captions" />
             Tu navegador no soporta el elemento de audio.
           </audio>
 
-          <Button type='primary' onClick={() => generateTranscription(getTranscriptionDto)} size='small' disabled={!!isLoadingTranscription}>
+          <Button
+            type="primary"
+            onClick={() => generateTranscription(getTranscriptionDto)}
+            size="small"
+            disabled={!!isLoadingTranscription}
+          >
             Texto
           </Button>
         </Row>
@@ -195,9 +269,9 @@ const SummaryEdit: React.FC<SummaryEditProps> = ({ form }) => {
             <Title level={4}>Transcripción</Title>
             <TextArea
               value={transcriptionData?.text}
-              placeholder='Transcripción...'
+              placeholder="Transcripción..."
               autoSize={{ minRows: 10, maxRows: 20 }}
-              style={{ height: '100%' }}
+              style={{ height: "100%" }}
             />
           </Spin>
         )}
@@ -207,45 +281,63 @@ const SummaryEdit: React.FC<SummaryEditProps> = ({ form }) => {
           <div>Error cargando el resumen</div>
         ) : (
           <Form
-            name='basic'
-            layout='vertical'
+            name="basic"
+            layout="vertical"
             labelCol={{ span: 8 }}
             wrapperCol={{ span: 20 }}
-            initialValues={{ title: summaryData?.title, summary: summaryData?.summary }}
+            initialValues={{
+              title: summaryData?.title,
+              summary: summaryData?.summary,
+            }}
             onFinish={onFinish}
             onFinishFailed={onFinishFailed}
-            autoComplete='off'
+            autoComplete="off"
             form={form}
           >
             <Form.Item<FieldType>
-              label='NOTA'
-              name='index'
+              label="NOTA"
+              name="index"
               rules={[
                 { required: true },
                 {
-                  validator: (_, value) => (/^\d*$/.test(value) ? Promise.resolve() : Promise.reject(new Error('Debe ser numérico'))),
-                  message: 'Debe ser numérico',
+                  validator: (_, value) =>
+                    /^\d*$/.test(value)
+                      ? Promise.resolve()
+                      : Promise.reject(new Error("Debe ser numérico")),
+                  message: "Debe ser numérico",
                 },
                 {
                   validator: (_, value) =>
-                    value && value.length >= 2 ? Promise.resolve() : Promise.reject(new Error('Debe tener al menos 2 números')),
-                  message: 'Debe tener al menos 2 números',
+                    value && value.length >= 2
+                      ? Promise.resolve()
+                      : Promise.reject(
+                          new Error("Debe tener al menos 2 números")
+                        ),
+                  message: "Debe tener al menos 2 números",
                 },
               ]}
-              validateTrigger='onChange'
+              validateTrigger="onChange"
             >
-              <Input placeholder='XX' />
+              <Input placeholder="XX" />
             </Form.Item>
 
             {errorPlatforms ? (
               <div>Error cargando plataformas</div>
             ) : (
               <Spin spinning={isLoadingPlatforms}>
-                <Form.Item<FieldType> label='Programa' name='program' rules={[{ required: true }]}>
+                <Form.Item<FieldType>
+                  label="Programa"
+                  name="program"
+                  rules={[{ required: true }]}
+                >
                   <Select
-                    placeholder='Seleccione un programa...'
+                    placeholder="Seleccione un programa..."
                     showSearch
-                    filterOption={(input, option) => String(option?.value)?.toLowerCase().includes(input.toLowerCase())}
+                    filterOption={(input, option) =>
+                      String(option?.value)
+                        ?.toLowerCase()
+                        .includes(input.toLowerCase())
+                    }
                     onChange={handleProgramChange}
                   >
                     {programOptions.map((option, _) => (
@@ -259,11 +351,23 @@ const SummaryEdit: React.FC<SummaryEditProps> = ({ form }) => {
             )}
 
             <Spin spinning={isLoadingSummary || isLoadingTranscription}>
-              <Form.Item<FieldType> label='Titular' name='title' rules={[{ required: true }]}>
-                <Input placeholder='Titular...' />
+              <Form.Item<FieldType>
+                label="Titular"
+                name="title"
+                rules={[{ required: true }]}
+              >
+                <Input placeholder="Titular..." />
               </Form.Item>
-              <Form.Item<FieldType> label='Resumen' name='summary' rules={[{ required: true }]}>
-                <TextArea placeholder='Resumen...' autoSize={{ minRows: 6, maxRows: 20 }} style={{ height: '100%' }} />
+              <Form.Item<FieldType>
+                label="Resumen"
+                name="summary"
+                rules={[{ required: true }]}
+              >
+                <TextArea
+                  placeholder="Resumen..."
+                  autoSize={{ minRows: 6, maxRows: 20 }}
+                  style={{ height: "100%" }}
+                />
               </Form.Item>
             </Spin>
           </Form>

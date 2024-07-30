@@ -10,14 +10,16 @@ import { AppModule } from './app/app.module';
 
 import compression from '@fastify/compress';
 import { FastifyAdapter, NestFastifyApplication } from '@nestjs/platform-fastify';
+//import { ConfigService } from '@nestjs/config';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestFastifyApplication>(AppModule, new FastifyAdapter({ logger: true }));
   app.enableCors();
   app.register(compression);
+  //const configService = app.get(ConfigService);
   const globalPrefix = '';
   app.setGlobalPrefix(globalPrefix);
-  const port = process.env.PORT || 3000;
+  const port = 3000; // configService.get<number>('PORT') || 3000;
   await app.listen(port, '0.0.0.0');
 
   Logger.log(`🚀 Application is running on: http://localhost:${port}/${globalPrefix}`);

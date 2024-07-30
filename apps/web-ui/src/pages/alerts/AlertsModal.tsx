@@ -1,13 +1,13 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { Button, Col, Form, message, Modal, Row, Spin, Steps } from 'antd';
-import { useAlert } from './AlertsContext';
-import { useMutation, UseMutationResult } from 'react-query';
-import { CreateFileDto, FileDto, Fragment, NoteDto } from '@radio-alert/models';
-import api from '../../services/Agent';
-import AudioEdit from '../audio/AudioEdit';
-import moment from 'moment';
-import SummaryEdit from '../notes/SummaryEdit';
-import { useNote } from '../notes/NoteContext';
+import React, { useEffect, useMemo, useState } from "react";
+import { Button, Col, Form, message, Modal, Row, Spin, Steps } from "antd";
+import { useAlert } from "./AlertsContext";
+import { useMutation, UseMutationResult } from "react-query";
+import { CreateFileDto, FileDto, Fragment, NoteDto } from "@repo/shared/index";
+import api from "../../services/Agent";
+import AudioEdit from "../audio/AudioEdit";
+import moment from "moment";
+import SummaryEdit from "../notes/SummaryEdit";
+import { useNote } from "../notes/NoteContext";
 
 interface AlertsModalProps {
   visible: boolean;
@@ -20,13 +20,20 @@ const useCreateFileMutation = (createFileDto: CreateFileDto) => {
     return response.data;
   });
 };
-type CreateFileMutationResult = UseMutationResult<FileDto, unknown, CreateFileDto, unknown>;
+type CreateFileMutationResult = UseMutationResult<
+  FileDto,
+  unknown,
+  CreateFileDto,
+  unknown
+>;
 
 const AlertsModal: React.FC<AlertsModalProps> = ({ visible, onClose }) => {
   const { selectedAlert } = useAlert();
   const { note, setNote } = useNote();
   const [fragment, setFragment] = useState<Fragment>(new Fragment());
-  const [createFragmentDto, setCreateFragmentDto] = useState<CreateFileDto>(new CreateFileDto());
+  const [createFragmentDto, setCreateFragmentDto] = useState<CreateFileDto>(
+    new CreateFileDto()
+  );
   const [formSummary] = Form.useForm();
 
   const createSegmentDto = useMemo(
@@ -57,7 +64,12 @@ const AlertsModal: React.FC<AlertsModalProps> = ({ visible, onClose }) => {
     data: noteData,
     isLoading: isLoadingNote,
     error: errorNote,
-  }: UseMutationResult<NoteDto, unknown, NoteDto, unknown> = useMutation<NoteDto, unknown, NoteDto, unknown>(async () => {
+  }: UseMutationResult<NoteDto, unknown, NoteDto, unknown> = useMutation<
+    NoteDto,
+    unknown,
+    NoteDto,
+    unknown
+  >(async () => {
     const response = await api.post(`/notes/set-note`, note);
     return response.data;
   });
@@ -71,7 +83,10 @@ const AlertsModal: React.FC<AlertsModalProps> = ({ visible, onClose }) => {
     }
   }, [visible, createSegmentFile, createSegmentDto, setNote]);
 
-  const handleCreateFragment = (createFileDto: CreateFileDto, fragment: Fragment) => {
+  const handleCreateFragment = (
+    createFileDto: CreateFileDto,
+    fragment: Fragment
+  ) => {
     setFragment(fragment);
     setCreateFragmentDto(createFileDto);
   };
@@ -95,7 +110,7 @@ const AlertsModal: React.FC<AlertsModalProps> = ({ visible, onClose }) => {
 
   const next = () => {
     if (current === 1) {
-      formSummary.validateFields().then(values => {
+      formSummary.validateFields().then((values) => {
         setNote({
           ...note,
           index: values.index,
@@ -126,41 +141,56 @@ const AlertsModal: React.FC<AlertsModalProps> = ({ visible, onClose }) => {
     let jsonString = JSON.stringify(obj, null, 2);
 
     // Escape HTML special characters
-    jsonString = jsonString.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    jsonString = jsonString
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;");
 
     // Wrap in <pre> tag for formatting
     return `<pre>${jsonString}</pre>`;
   }
   const steps = [
     {
-      title: 'Editar Audio',
+      title: "Editar Audio",
       content: errorSegment ? (
         <div>Error loading Segment</div>
       ) : (
         segmentData && (
-          <AudioEdit segmentData={segmentData} audioFile={createSegmentDto.output} onCreateFragmentDto={handleCreateFragment}></AudioEdit>
+          <AudioEdit
+            segmentData={segmentData}
+            audioFile={createSegmentDto.output}
+            onCreateFragmentDto={handleCreateFragment}
+          ></AudioEdit>
         )
       ),
     },
     {
-      title: 'Resumen',
+      title: "Resumen",
       content: errorFragment ? (
         <div>Error loading Fragment</div>
       ) : (
-        segmentData && <Spin spinning={isLoadingFragment}>{fragmentData && <SummaryEdit form={formSummary}></SummaryEdit>}</Spin>
+        segmentData && (
+          <Spin spinning={isLoadingFragment}>
+            {fragmentData && <SummaryEdit form={formSummary}></SummaryEdit>}
+          </Spin>
+        )
       ),
     },
     {
-      title: 'Nota',
+      title: "Nota",
       content: errorNote ? (
         <div>Error loading Note</div>
       ) : (
-        noteData && <Spin spinning={isLoadingNote}>{noteData && objectToPrettyHtml(noteData)}</Spin>
+        noteData && (
+          <Spin spinning={isLoadingNote}>
+            {noteData && objectToPrettyHtml(noteData)}
+          </Spin>
+        )
       ),
     },
   ];
 
-  const items = steps.map(item => ({ key: item.title, title: item.title }));
+  const items = steps.map((item) => ({ key: item.title, title: item.title }));
 
   if (!selectedAlert) return <div>No alert selected</div>;
 
@@ -189,39 +219,71 @@ const AlertsModal: React.FC<AlertsModalProps> = ({ visible, onClose }) => {
       loading={isLoadingSegment}
       onCancel={onClose}
       onClose={onClose}
-      width='100vw'
+      width="100vw"
       destroyOnClose={true}
       footer={null}
       maskClosable={false}
     >
       <>
-        <Steps current={current} items={items} size='small' />
-        <div style={{ minHeight: '300px', marginTop: '20px' }}>{steps[current].content}</div>
+        <Steps current={current} items={items} size="small" />
+        <div style={{ minHeight: "300px", marginTop: "20px" }}>
+          {steps[current].content}
+        </div>
         <Row style={{ marginTop: 24 }}>
           <Col span={3}>
-            <Button size='small' style={{ margin: '0 8px' }} onClick={() => prev()} disabled={current === 0}>
-              {current > 0 ? 'Previous' : '_________'}
+            <Button
+              size="small"
+              style={{ margin: "0 8px" }}
+              onClick={() => prev()}
+              disabled={current === 0}
+            >
+              {current > 0 ? "Previous" : "_________"}
             </Button>
             {current < steps.length - 1 && (
-              <Button type='primary' onClick={() => next()} size='small' disabled={isStepInvalid()}>
+              <Button
+                type="primary"
+                onClick={() => next()}
+                size="small"
+                disabled={isStepInvalid()}
+              >
                 Next
               </Button>
             )}
             {current === steps.length - 1 && (
-              <Button type='primary' onClick={() => message.success('Processing complete!')} size='small'>
+              <Button
+                type="primary"
+                onClick={() => message.success("Processing complete!")}
+                size="small"
+              >
                 Done
               </Button>
             )}
           </Col>
 
           <Col span={3}>
-            <div>{'Fecha: ' + (fragment.startTime ? moment(fragment.startTime).format('YYYY-MM-DD') : '')}</div>
+            <div>
+              {"Fecha: " +
+                (fragment.startTime
+                  ? moment(fragment.startTime).format("YYYY-MM-DD")
+                  : "")}
+            </div>
           </Col>
           <Col span={3}>
-            <div>{'Inicio: ' + (fragment.startTime ? moment(fragment.startTime).format('HH:mm:ss') : '')}</div>
+            <div>
+              {"Inicio: " +
+                (fragment.startTime
+                  ? moment(fragment.startTime).format("HH:mm:ss")
+                  : "")}
+            </div>
           </Col>
           <Col span={3}>
-            <div>{`Duración: ${fragment.startTime ? moment.utc(fragment.duration?.asMilliseconds()).format('HH:mm:ss') : ''}`}</div>
+            <div>{`Duración: ${
+              fragment.startTime
+                ? moment
+                    .utc(fragment.duration?.asMilliseconds())
+                    .format("HH:mm:ss")
+                : ""
+            }`}</div>
           </Col>
         </Row>
       </>

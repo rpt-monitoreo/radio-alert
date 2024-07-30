@@ -1,4 +1,4 @@
-import { NoteDto } from '@radio-alert/models';
+import { NoteDto } from '@repo/shared/index';
 import React, { createContext, useState, useContext, ReactNode } from 'react';
 
 interface NoteContextType {

@@ -1,10 +1,10 @@
-import { DatePicker } from 'antd';
-import dayjs from 'dayjs';
-import { useState } from 'react';
-import { dateFormat, DateRange, ValidDatesDto } from '@radio-alert/models';
-import AlertsTable from './AlertsTable';
-import { useQuery, UseQueryResult } from 'react-query';
-import api from '../../services/Agent';
+import { DatePicker } from "antd";
+import dayjs from "dayjs";
+import { useState } from "react";
+import { dateFormat, DateRange, ValidDatesDto } from "@repo/shared/index";
+import AlertsTable from "./AlertsTable";
+import { useQuery, UseQueryResult } from "react-query";
+import api from "../../services/Agent";
 
 // Asegúrate de tener un formato de fecha válido para dayjs
 
@@ -16,11 +16,15 @@ const Alerts = () => {
     isLoading: isLoadingDates,
     error: errorDates,
   }: UseQueryResult<ValidDatesDto> = useQuery({
-    queryKey: ['dates'],
-    queryFn: async () => await api.post(`/alerts/dates`, {}).then(res => res.data),
+    queryKey: ["dates"],
+    queryFn: async () =>
+      await api.post(`/alerts/dates`, {}).then((res) => res.data),
   });
 
-  const [selectedDates, setSelectedDates] = useState<DateRange | null>([dayjs(), dayjs()]);
+  const [selectedDates, setSelectedDates] = useState<DateRange | null>([
+    dayjs(),
+    dayjs(),
+  ]);
 
   const handleCalendarChange = (dates: DateRange | null) => {
     setSelectedDates(dates);
@@ -37,7 +41,7 @@ const Alerts = () => {
       <RangePicker
         value={selectedDates || [maxDate, maxDate]}
         onChange={handleCalendarChange}
-        disabledDate={current => current < minDate || current > maxDate}
+        disabledDate={(current) => current < minDate || current > maxDate}
         allowClear={false}
       />
       <AlertsTable selectedDates={selectedDates} />

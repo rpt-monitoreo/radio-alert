@@ -1,4 +1,4 @@
-import { AlertDto } from '@radio-alert/models';
+import { AlertDto } from '@repo/shared/index';
 import React, { createContext, useState, useContext, ReactNode } from 'react';
 
 interface AlertContextType {

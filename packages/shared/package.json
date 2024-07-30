@@ -1,0 +1,25 @@
+{
+  "name": "@repo/shared",
+  "version": "0.0.0",
+  "exports": {
+    "./counter": "./components/counter.ts",
+    "./header": "./components/header.ts",
+    "./setup-counter": "./utils/counter.ts",
+    "./index": "./src/index.ts"
+  },
+  "license": "MIT",
+  "scripts": {
+    "lint": "eslint \"**/*.ts\""
+  },
+  "devDependencies": {
+    "@repo/eslint-config": "workspace:*",
+    "@repo/typescript-config": "workspace:*",
+    "eslint": "^8.57.0",
+    "typescript": "^5.3.3"
+  },
+  "dependencies": {
+    "dayjs": "^1.11.12",
+    "moment": "^2.30.1",
+    "path": "^0.12.7"
+  }
+}
