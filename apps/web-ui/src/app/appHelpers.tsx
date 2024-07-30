@@ -3,16 +3,16 @@ import {
   InfoCircleFilled,
   LogoutOutlined,
   QuestionCircleFilled,
-} from '@ant-design/icons';
+} from "@ant-design/icons";
 
-import type { MenuDataItem } from '@ant-design/pro-components';
-import { SiderMenuProps } from '@ant-design/pro-layout/es/components/SiderMenu/SiderMenu';
-import { GlobalHeaderProps } from '@ant-design/pro-layout/es/components/GlobalHeader';
-import { AvatarProps, Dropdown } from 'antd';
-import { ReactNode } from 'react';
-import { Link } from 'react-router-dom';
-import SearchInput from '../components/SearchInput';
-import MenuCard from '../components/MenuCard';
+import type { MenuDataItem } from "@ant-design/pro-components";
+import { SiderMenuProps } from "@ant-design/pro-layout/es/components/SiderMenu/SiderMenu";
+import { GlobalHeaderProps } from "@ant-design/pro-layout/es/components/GlobalHeader";
+import { AvatarProps, Dropdown } from "antd";
+import { ReactNode } from "react";
+import { Link } from "react-router-dom";
+import SearchInput from "../components/SearchInput";
+import MenuCard from "../components/MenuCard";
 
 export function headerTitleRender(
   logo: React.ReactNode,
@@ -22,11 +22,11 @@ export function headerTitleRender(
   const defaultDom = (
     <button
       style={{
-        background: 'none',
-        border: 'none',
-        cursor: 'pointer',
-        display: 'flex',
-        alignItems: 'center',
+        background: "none",
+        border: "none",
+        cursor: "pointer",
+        display: "flex",
+        alignItems: "center",
       }}
     >
       {logo}
@@ -35,7 +35,7 @@ export function headerTitleRender(
   );
 
   if (
-    typeof window === 'undefined' ||
+    typeof window === "undefined" ||
     document.body.clientWidth < 1400 ||
     props.isMobile
   ) {
@@ -56,7 +56,7 @@ export function menuFooterRender(props?: SiderMenuProps) {
   return (
     <div
       style={{
-        textAlign: 'center',
+        textAlign: "center",
         paddingBlockStart: 12,
       }}
     >
@@ -73,8 +73,8 @@ export function menuItemRender(
 ) {
   return (
     <Link
-      to={'/radio-alert' + item.path}
-      onClick={() => setPathname(item.path ?? '/welcome')}
+      to={`${item.path}`}
+      onClick={() => setPathname(item.path ?? "/welcome")}
     >
       {dom}
     </Link>
@@ -83,9 +83,9 @@ export function menuItemRender(
 
 export function getActionsRender(props: GlobalHeaderProps) {
   if (props.isMobile) return [];
-  if (typeof window === 'undefined') return [];
+  if (typeof window === "undefined") return [];
   return [
-    props.layout !== 'side' && document.body.clientWidth > 1400 ? (
+    props.layout !== "side" && document.body.clientWidth > 1400 ? (
       <SearchInput />
     ) : undefined,
     <InfoCircleFilled key="InfoCircleFilled" />,
@@ -99,18 +99,18 @@ export function getAvatarProps(): AvatarProps & {
   render: (props: AvatarProps, defaultDom: ReactNode) => ReactNode;
 } {
   return {
-    src: 'https://gw.alipayobjects.com/zos/antfincdn/efFD%24IOql2/weixintupian_20170331104822.jpg',
-    size: 'small',
-    title: 'Qinini',
+    src: "https://gw.alipayobjects.com/zos/antfincdn/efFD%24IOql2/weixintupian_20170331104822.jpg",
+    size: "small",
+    title: "Qinini",
     render: (_props: AvatarProps, dom: ReactNode) => {
       return (
         <Dropdown
           menu={{
             items: [
               {
-                key: 'logout',
+                key: "logout",
                 icon: <LogoutOutlined />,
-                label: 'Salir',
+                label: "Salir",
               },
             ],
           }}
