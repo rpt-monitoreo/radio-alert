@@ -98,7 +98,6 @@ const AlertsModal: React.FC<AlertsModalProps> = ({ visible, onClose }) => {
       startTime: fragment.startTime?.toISOString(),
       duration: fragment?.duration?.seconds(),
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fragment]);
 
   const [current, setCurrent] = useState(0);

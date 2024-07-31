@@ -67,7 +67,8 @@ const SummaryEdit: React.FC<SummaryEditProps> = ({ form }) => {
   const slotsRef = useRef<Slot[]>([]);
 
   const waveformUrl = useMemo(
-    () => `/audio/fetchByName/fragment_${selectedAlert?.id}?v=${Date.now()}`,
+    () =>
+      `${import.meta.env.VITE_API_LOCAL}/audio/fetchByName/fragment_${selectedAlert?.id}?v=${Date.now()}`,
     [selectedAlert]
   );
 
@@ -129,7 +130,6 @@ const SummaryEdit: React.FC<SummaryEditProps> = ({ form }) => {
 
     if (slotsRef.current.length === 0) return;
     setProgramOptions(slotsRef.current.map((slot) => slot.label ?? ""));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [form, platforms, selectedAlert?.platform]);
 
   const {
@@ -330,7 +330,7 @@ const SummaryEdit: React.FC<SummaryEditProps> = ({ form }) => {
                     }
                     onChange={handleProgramChange}
                   >
-                    {programOptions.map((option, _) => (
+                    {programOptions.map((option) => (
                       <Option key={option} value={option}>
                         {option}
                       </Option>
