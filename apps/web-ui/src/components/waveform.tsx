@@ -1,11 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React, { useEffect, useRef } from 'react';
-import WaveSurfer from 'wavesurfer.js';
-import RegionsPlugin from 'wavesurfer.js/dist/plugins/regions.js';
+import React, { useEffect, useRef } from "react";
+import WaveSurfer from "wavesurfer.js";
+import RegionsPlugin from "wavesurfer.js/dist/plugins/regions.js";
 
-import TimelinePlugin from 'wavesurfer.js/dist/plugins/timeline.js';
-import Minimap from 'wavesurfer.js/dist/plugins/minimap.js';
-import ZoomPlugin from 'wavesurfer.js/dist/plugins/zoom.js';
+import TimelinePlugin from "wavesurfer.js/dist/plugins/timeline.js";
+import Minimap from "wavesurfer.js/dist/plugins/minimap.js";
+import ZoomPlugin from "wavesurfer.js/dist/plugins/zoom.js";
 
 interface WaveformProps {
   url: string;
@@ -20,9 +20,9 @@ const Waveform: React.FC<WaveformProps> = ({ url, onSelection }) => {
     const wavesurfer = WaveSurfer.create({
       container: waveformRef.current,
       url: url,
-      waveColor: '#0080ff',
-      progressColor: '#004080',
-      cursorColor: '#ffffff',
+      waveColor: "#0080ff",
+      progressColor: "#004080",
+      cursorColor: "#ffffff",
       cursorWidth: 2,
       barWidth: 1,
       barGap: 1,
@@ -36,13 +36,13 @@ const Waveform: React.FC<WaveformProps> = ({ url, onSelection }) => {
     wavesurfer.registerPlugin(
       TimelinePlugin.create({
         height: 24,
-        insertPosition: 'beforebegin',
+        insertPosition: "beforebegin",
         timeInterval: 5,
         primaryLabelInterval: 60,
         secondaryLabelInterval: 60,
         style: {
-          fontSize: '16px',
-          color: '#2D5B88',
+          fontSize: "16px",
+          color: "#2D5B88",
         },
       })
     );
@@ -53,13 +53,13 @@ const Waveform: React.FC<WaveformProps> = ({ url, onSelection }) => {
       })
     );
 
-    const minimap = wavesurfer.registerPlugin(
+    wavesurfer.registerPlugin(
       Minimap.create({
         container: waveformRef.current,
         height: 20,
         barHeight: 0.5,
-        waveColor: '#ddd',
-        progressColor: '#999',
+        waveColor: "#ddd",
+        progressColor: "#999",
         // the Minimap takes all the same options as the wavesurferRef.current itself
         plugins: [
           TimelinePlugin.create({
@@ -68,23 +68,19 @@ const Waveform: React.FC<WaveformProps> = ({ url, onSelection }) => {
             primaryLabelInterval: 60,
             secondaryLabelInterval: 30,
             style: {
-              fontSize: '8px',
-              color: '#2D5B88',
+              fontSize: "8px",
+              color: "#2D5B88",
             },
             formatTimeCallback: function (secs) {
               const minutes = Math.floor(secs / 60) || 0;
               const seconds = secs - minutes * 60 || 0;
-              return minutes + ':' + (seconds < 10 ? '0' : '') + seconds;
+              return minutes + ":" + (seconds < 10 ? "0" : "") + seconds;
             },
           }),
         ],
       } as any)
     );
 
-    
-    (minimap as any).addEventListener('interaction', () => {
-      wavesurfer.play();
-    });
     return wavesurfer;
   };
 
@@ -94,40 +90,49 @@ const Waveform: React.FC<WaveformProps> = ({ url, onSelection }) => {
     wsRef.current = createWaveSurfer(url);
 
     const wsRegions = wsRef.current.registerPlugin(RegionsPlugin.create());
-    wsRef.current.on('decode', () => {
+    wsRef.current.on("decode", () => {
       wsRegions.addRegion({
         start: 0,
-        color: 'rgba(180, 180, 180, 0.5)',
+        color: "rgba(180, 180, 180, 0.5)",
       });
       wsRegions.addRegion({
         start: 0,
-        color: 'rgba(180, 180, 180, 0.5)',
+        color: "rgba(180, 180, 180, 0.5)",
       });
     });
     let touchtime = 0;
     let currentTime = 0;
-    wsRef.current.on('click', () => {
+    wsRef.current.on("click", () => {
       if (!wsRef.current) return;
       if (touchtime === 0) {
         // set first click
         wsRef.current.play();
         touchtime = new Date().getTime();
         currentTime = wsRef.current.getCurrentTime();
-      } else if (new Date().getTime() - touchtime < 800 && currentTime === wsRef.current.getCurrentTime()) {
+      } else if (
+        new Date().getTime() - touchtime < 800 &&
+        currentTime === wsRef.current.getCurrentTime()
+      ) {
         // compare first click to this click and see if they occurred within double click threshold
         const pos = wsRef.current.getCurrentTime();
         // double click occurred
 
         const region1 = wsRegions.getRegions()[0];
         const region2 = wsRegions.getRegions()[1];
-        const shouldUpdateRegion1 = region1.start === 0 || (region2.start !== 0 && Math.abs(region1.start - pos) < Math.abs(region2.start - pos));
+        const shouldUpdateRegion1 =
+          region1.start === 0 ||
+          (region2.start !== 0 &&
+            Math.abs(region1.start - pos) < Math.abs(region2.start - pos));
 
         if (shouldUpdateRegion1) {
           region1.setOptions({ start: pos });
         } else if (region2.start === 0 || !shouldUpdateRegion1) {
           region2.setOptions({ start: pos });
         }
-        onSelection(Math.min(region1.start, region2.start), Math.max(region1.start, region2.start));
+        onSelection(
+          Math.min(region1.start, region2.start),
+          Math.max(region1.start, region2.start)
+        );
 
         touchtime = 0;
       } else {
@@ -137,10 +142,13 @@ const Waveform: React.FC<WaveformProps> = ({ url, onSelection }) => {
       }
     });
 
-    wsRegions.on('region-updated', ()=> {
+    wsRegions.on("region-updated", () => {
       const region1 = wsRegions.getRegions()[0];
       const region2 = wsRegions.getRegions()[1];
-      onSelection(Math.min(region1.start, region2.start), Math.max(region1.start, region2.start));
+      onSelection(
+        Math.min(region1.start, region2.start),
+        Math.max(region1.start, region2.start)
+      );
     });
 
     return () => {
