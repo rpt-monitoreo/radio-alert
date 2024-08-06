@@ -1,6 +1,17 @@
-import { Controller, Post, Body, HttpException, HttpStatus } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  HttpException,
+  HttpStatus,
+} from '@nestjs/common';
 import { AlertsService } from './alerts.service';
-import { GetAlertsDto, GetSummaryDto, GetTranscriptionDto, SummaryDto } from '@radio-alert/models';
+import {
+  GetAlertsDto,
+  GetSummaryDto,
+  GetTranscriptionDto,
+  SummaryDto,
+} from '@repo/shared';
 
 @Controller('alerts')
 export class AlertsController {
@@ -16,7 +27,7 @@ export class AlertsController {
           status: HttpStatus.INTERNAL_SERVER_ERROR,
           error: `There was an error processing the request getAlerts ${error}`,
         },
-        HttpStatus.INTERNAL_SERVER_ERROR
+        HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }
@@ -31,7 +42,7 @@ export class AlertsController {
           status: HttpStatus.INTERNAL_SERVER_ERROR,
           error: `There was an error processing the request getText ${error}`,
         },
-        HttpStatus.INTERNAL_SERVER_ERROR
+        HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }
@@ -46,7 +57,7 @@ export class AlertsController {
           status: HttpStatus.INTERNAL_SERVER_ERROR,
           error: `There was an error processing the request getSummary  ${error}`,
         },
-        HttpStatus.INTERNAL_SERVER_ERROR
+        HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }
@@ -61,7 +72,7 @@ export class AlertsController {
           status: HttpStatus.INTERNAL_SERVER_ERROR,
           error: `There was an error processing the request getValidDates ${error}`,
         },
-        HttpStatus.INTERNAL_SERVER_ERROR
+        HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }

@@ -3,32 +3,32 @@ import { Entity, ObjectIdColumn, Column } from 'typeorm';
 @Entity()
 export class Note {
   @ObjectIdColumn()
-  id: string;
+  id!: string;
 
   @Column()
-  text: string;
+  text!: string;
 
   @Column()
-  summary: string;
+  summary!: string;
 
   @Column()
-  title: string;
+  title!: string;
 
   @Column()
-  index: string;
+  index!: string;
 
   @Column()
-  program: string;
+  program!: string;
 
   @Column()
-  startTime: string;
+  startTime!: string;
 
   @Column()
-  duration: number;
+  duration!: number;
 
   @Column()
-  alert_id: string;
+  alert_id!: string;
 
   @Column()
-  audioLabel: string;
+  audioLabel!: string;
 }

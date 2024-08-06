@@ -3,26 +3,26 @@ import { Entity, ObjectIdColumn, Column, CreateDateColumn } from 'typeorm';
 @Entity()
 export class Transcription {
   @ObjectIdColumn()
-  id: string;
+  id!: string;
 
   @Column()
-  text: string;
+  text!: string;
 
   @CreateDateColumn()
-  startTime: Date;
+  startTime!: Date;
 
   @CreateDateColumn()
-  endTime: Date;
+  endTime!: Date;
 
   @Column()
-  media: string;
+  media!: string;
 
   @Column()
-  filePath: string;
+  filePath!: string;
 
   @Column()
-  platform: string;
+  platform!: string;
 
   @Column()
-  processed: boolean;
+  processed!: boolean;
 }

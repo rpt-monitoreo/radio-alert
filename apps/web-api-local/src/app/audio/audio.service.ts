@@ -1,32 +1,39 @@
 // audio.service.ts
 import { Injectable } from '@nestjs/common';
-import { CreateFileDto, getDateFromFile } from '@radio-alert/models';
+import { CreateFileDto, getDateFromFile } from '@repo/shared';
 import ffmpeg from 'fluent-ffmpeg';
 import * as fs from 'fs';
 import * as path from 'path';
 import stream from 'stream';
-import { chmod } from 'fs/promises';
-import { rimraf } from 'rimraf';
 
 @Injectable()
 export class AudioService {
-  async createAudioSegment(createFileDto: CreateFileDto): Promise<{ startSeconds: number; duration: number }> {
+  async createAudioSegment(
+    createFileDto: CreateFileDto,
+  ): Promise<{ startSeconds: number; duration: number }> {
     const { alert } = createFileDto;
-    const filePath = path.resolve(alert.filePath);
+    if (!alert) throw new Error('Alert not found');
+    if (!createFileDto.duration) throw new Error('Duration not found');
+    if (!createFileDto.startSecond) throw new Error('Start second not found');
+    const filePath = path.resolve(alert.filePath ?? '');
     const outputPath = path.resolve(`./audioFiles/${createFileDto.output}.mp3`);
 
     let startSeconds = 0;
     if (outputPath.includes('segment')) {
       const fileTime = getDateFromFile(filePath);
-      const endTime = new Date(alert.endTime);
+      const endTime = new Date(alert.endTime ?? '');
       const endSeconds = (endTime.getTime() - fileTime.getTime()) / 1000;
 
-      if (endSeconds > createFileDto.duration / 2) startSeconds = endSeconds - createFileDto.duration / 2;
+      if (endSeconds > createFileDto.duration / 2)
+        startSeconds = endSeconds - createFileDto.duration / 2;
     } else {
       startSeconds = createFileDto.startSecond;
     }
 
-    if ((await this.checkFileExists(outputPath)) && outputPath.includes('segment')) {
+    if (
+      (await this.checkFileExists(outputPath)) &&
+      outputPath.includes('segment')
+    ) {
       ffmpeg.ffprobe(outputPath, (_, metadata) => {
         const duration = metadata.format.duration;
         return { startSeconds, duration };
@@ -35,11 +42,27 @@ export class AudioService {
 
     let duration = 0;
     if (outputPath.includes('segment')) {
-      duration = await this.extractAudioSegment(filePath, startSeconds, createFileDto.duration, 16, 8000, outputPath, 'mp3');
+      duration = await this.extractAudioSegment(
+        filePath,
+        startSeconds,
+        createFileDto.duration,
+        16,
+        8000,
+        outputPath,
+        'mp3',
+      );
     } else {
       //Fragment
       const durations = await Promise.all([
-        this.extractAudioSegment(filePath, startSeconds, createFileDto.duration, 32, 16000, outputPath, 'mp3'),
+        this.extractAudioSegment(
+          filePath,
+          startSeconds,
+          createFileDto.duration,
+          32,
+          16000,
+          outputPath,
+          'mp3',
+        ),
         this.extractAudioSegment(
           filePath,
           startSeconds,
@@ -47,7 +70,7 @@ export class AudioService {
           128000,
           44100,
           outputPath.replace('mp3', 'wav'),
-          'wav'
+          'wav',
         ),
       ]);
       duration = durations[0];
@@ -63,7 +86,7 @@ export class AudioService {
     audioBitrate: number,
     audioFrequency: number,
     outputPath: string,
-    format: string
+    format: string,
   ): Promise<number> {
     return new Promise<number>((resolve, reject) => {
       const command = ffmpeg(filePath)
@@ -87,12 +110,12 @@ export class AudioService {
             if (err) {
               reject(new Error(err));
             } else {
-              resolve(metadata.format.duration);
+              resolve(metadata.format.duration ?? 0);
             }
           });
         })
         .on('error', function (err) {
-          reject(new Error(err));
+          return reject(err.toString());
         })
         .run();
     });
@@ -104,31 +127,7 @@ export class AudioService {
     try {
       return fs.createReadStream(filePath);
     } catch (error) {
-      throw new Error(error);
-    }
-  }
-
-  /**
-   * Deletes an audio file by its name.
-   *
-   * @param filename The name of the file to delete.
-   * @returns A promise that resolves to true if the file was successfully deleted, or false if the file was not found.
-   */
-  async deleteAudioFileByName(filename: string): Promise<boolean> {
-    const filePath = path.resolve(`./audioFiles/${filename}.mp3`);
-
-    try {
-      await chmod(filePath, 0o777);
-      await rimraf(filePath); // Use await with fs.promises.unlink
-      return true; // File successfully deleted
-    } catch (error) {
-      if (error.code === 'ENOENT') {
-        // File does not exist
-        return false;
-      } else {
-        // Other errors, rethrow or handle as needed
-        throw error;
-      }
+      throw new Error(String(error));
     }
   }
 
@@ -142,7 +141,7 @@ export class AudioService {
     return new Promise<number>((resolve, reject) => {
       ffmpeg.ffprobe(filePath, (err, metadata) => {
         if (err) reject(new Error(err));
-        else resolve(metadata.format.duration);
+        else resolve(metadata.format.duration ?? 0);
       });
     });
   }

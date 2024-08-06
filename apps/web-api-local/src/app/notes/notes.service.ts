@@ -1,23 +1,25 @@
 import { Injectable } from '@nestjs/common';
 import { DataSource, MongoRepository } from 'typeorm';
-import { ObjectId, MongoClient } from 'mongodb';
-import { NoteDto } from '@radio-alert/models';
+import { ObjectId } from 'mongodb';
+import { NoteDto } from '@repo/shared';
 import { Note } from '../entities';
 import { InjectDataSource } from '@nestjs/typeorm';
 import * as spawn from 'cross-spawn';
-import Grid from 'gridfs-stream';
-import { promises as fs } from 'fs';
 
 @Injectable()
 export class NotesService {
   noteRepo: MongoRepository<Note>;
 
-  constructor(@InjectDataSource('monitoring') private readonly dataSource: DataSource) {
+  constructor(
+    @InjectDataSource('monitoring') private readonly dataSource: DataSource,
+  ) {
     this.noteRepo = this.dataSource.getMongoRepository(Note);
   }
 
   async setNote(noteDto: NoteDto): Promise<NoteDto> {
-    const existingNote = await this.noteRepo.findOneBy({ _id: new ObjectId(noteDto.id) });
+    const existingNote = await this.noteRepo.findOneBy({
+      _id: new ObjectId(noteDto.id),
+    });
 
     if (!existingNote) {
       throw new Error('Platform not found');
@@ -45,14 +47,21 @@ export class NotesService {
     return updatedNote;
   }
 
-  async sendWhatsAppMessage(message: string, phoneNumber: string): Promise<boolean> {
+  async sendWhatsAppMessage(
+    message: string,
+    phoneNumber: string,
+  ): Promise<boolean> {
     let wasSend = false;
     try {
       const npxPath = 'C:\\Program Files\\nodejs\\npx.cmd'; // Adjust this path as needed
 
-      const result = spawn.sync(npxPath, ['mudslide', 'send', phoneNumber, message], {
-        encoding: 'utf-8',
-      });
+      const result = spawn.sync(
+        npxPath,
+        ['mudslide', 'send', phoneNumber, message],
+        {
+          encoding: 'utf-8',
+        },
+      );
 
       if (result.error) {
         throw new Error(`Error sending WhatsApp message: ${result.stderr}`);
@@ -60,7 +69,7 @@ export class NotesService {
         wasSend = true;
       }
     } catch (e) {
-      throw new Error(`Exception occurred: ${e.message}`);
+      throw new Error(`Exception occurred: ${(e as Error).message}`);
     }
     return wasSend;
   }

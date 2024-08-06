@@ -1,7 +1,19 @@
 // alerta.service.ts
 import { Injectable } from '@nestjs/common';
-import { DataSource, FindOneOptions, FindOptionsWhere, MongoRepository } from 'typeorm';
-import { GetAlertsDto, GetSummaryDto, GetTranscriptionDto, SummaryDto, TranscriptionDto, ValidDatesDto } from '@radio-alert/models';
+import {
+  DataSource,
+  FindOneOptions,
+  FindOptionsWhere,
+  MongoRepository,
+} from 'typeorm';
+import {
+  GetAlertsDto,
+  GetSummaryDto,
+  GetTranscriptionDto,
+  SummaryDto,
+  TranscriptionDto,
+  ValidDatesDto,
+} from '@repo/shared';
 import OpenAI from 'openai';
 import { exec } from 'child_process';
 import path from 'path';
@@ -16,7 +28,10 @@ export class AlertsService {
   noteRepo: MongoRepository<Note>;
   openai: OpenAI;
 
-  constructor(@InjectDataSource('monitoring') private readonly dataSource: DataSource, configService: ConfigService) {
+  constructor(
+    @InjectDataSource('monitoring') private readonly dataSource: DataSource,
+    configService: ConfigService,
+  ) {
     this.alertsRepo = this.dataSource.getMongoRepository(Alert);
     this.transcriptRepo = this.dataSource.getMongoRepository(Transcription);
     this.noteRepo = this.dataSource.getMongoRepository(Note);
@@ -35,8 +50,12 @@ export class AlertsService {
         model: 'gpt-4o',
         messages: [{ role: 'user', content: prompt }],
       });
+      if (!response.choices[0].message.content)
+        throw new Error('No content in response');
 
-      const message = response.choices[0].message?.content.replace(/#/g, '').replace(/\*/g, '');
+      const message = response.choices[0].message?.content
+        .replace(/#/g, '')
+        .replace(/\*/g, '');
       const title = message.split('\n')[0].trim();
       const summary = message.split('\n').slice(1).join('\n').trim();
 
@@ -46,7 +65,10 @@ export class AlertsService {
         summary = summary.substring(0, lastPeriodIndex + 1);
       } */
 
-      await this.noteRepo.update({ id: getSummaryDto.noteId }, { title, summary });
+      await this.noteRepo.update(
+        { id: getSummaryDto.noteId },
+        { title, summary },
+      );
 
       return { title, summary };
     } catch (error) {
@@ -75,7 +97,12 @@ export class AlertsService {
     if (!getAlertasDto) {
       throw new Error('getAlertasDto is undefined');
     }
-    const { startDate = '', endDate = '', clientName = '', type = [] } = getAlertasDto;
+    const {
+      startDate = '',
+      endDate = '',
+      clientName = '',
+      type = [],
+    } = getAlertasDto;
 
     if (!startDate || !endDate) {
       throw new Error('startDate and endDate are required');
@@ -94,19 +121,28 @@ export class AlertsService {
     return this.alertsRepo.find(findOptions);
   }
 
-  async getText(getTranscriptionDto: GetTranscriptionDto): Promise<TranscriptionDto> {
+  async getText(
+    getTranscriptionDto: GetTranscriptionDto,
+  ): Promise<TranscriptionDto> {
+    if (!getTranscriptionDto.filename) throw new Error('Filename is required');
     const scriptPath = './scripts/getTranscription.py';
-    const filePath = path.resolve(`./audioFiles/${getTranscriptionDto.filename}`);
+    const filePath = path.resolve(
+      `./audioFiles/${getTranscriptionDto.filename}`,
+    );
 
     await this.runPythonScript(scriptPath, [filePath]);
 
-    const alertId = getTranscriptionDto.filename.split('_')[1].replace('.wav', '');
+    const alertId = getTranscriptionDto.filename
+      .split('_')[1]
+      .replace('.wav', '');
     const note = await this.noteRepo.findOne({ where: { alert_id: alertId } });
-
+    if (!note) throw new Error('Note not found');
     return { noteId: note.id, text: note.text };
   }
 
-  async getValidDates(getAlertsDto: Partial<GetAlertsDto>): Promise<ValidDatesDto> {
+  async getValidDates(
+    getAlertsDto: Partial<GetAlertsDto>,
+  ): Promise<ValidDatesDto> {
     const getAlerts = getAlertsDto || {};
     const { clientName } = getAlerts;
     const query: FindOneOptions<Alert> = {
@@ -123,7 +159,7 @@ export class AlertsService {
       ...query,
       order: { endTime: 'DESC' },
     });
-
+    if (min === null || max === null) throw new Error('No alerts found');
     return {
       minDate: this.getDate(min.endTime),
       maxDate: this.getDate(max.endTime),

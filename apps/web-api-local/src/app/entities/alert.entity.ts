@@ -3,38 +3,38 @@ import { Entity, ObjectIdColumn, Column, CreateDateColumn } from 'typeorm';
 @Entity()
 export class Alert {
   @ObjectIdColumn()
-  id: string;
+  id!: string;
 
   @Column()
-  text: string;
+  text!: string;
 
   @CreateDateColumn()
-  date: Date;
+  date!: Date;
 
   @CreateDateColumn()
-  startTime: Date;
+  startTime!: Date;
 
   @CreateDateColumn()
-  endTime: Date;
+  endTime!: Date;
 
   @Column()
-  column: string;
+  column!: string;
 
   @Column()
-  media: string;
+  media!: string;
 
   @Column()
-  words: string[];
+  words!: string[];
 
   @Column()
-  filePath: string;
+  filePath!: string;
 
   @Column()
-  platform: string;
+  platform!: string;
 
   @Column()
-  clientName: string;
+  clientName!: string;
 
   @Column()
-  type: string;
+  type!: string;
 }

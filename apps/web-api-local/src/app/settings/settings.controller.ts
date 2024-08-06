@@ -1,6 +1,14 @@
-import { Controller, Post, HttpStatus, Body, HttpException, Get, Param } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  HttpStatus,
+  Body,
+  HttpException,
+  Get,
+  Param,
+} from '@nestjs/common';
 import { SettingsService } from './settings.service';
-import { PlatformDto } from '@radio-alert/models';
+import { PlatformDto } from '@repo/shared';
 import { Platform } from '../entities';
 
 @Controller('settings')
@@ -17,7 +25,7 @@ export class SettingsController {
           status: HttpStatus.INTERNAL_SERVER_ERROR,
           error: `There was an error processing the request get-platforms ${error}`,
         },
-        HttpStatus.INTERNAL_SERVER_ERROR
+        HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }
@@ -32,7 +40,7 @@ export class SettingsController {
           status: HttpStatus.INTERNAL_SERVER_ERROR,
           error: `There was an error processing the request update-platform ${error}`,
         },
-        HttpStatus.INTERNAL_SERVER_ERROR
+        HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }

@@ -1,22 +1,26 @@
 import { Entity, ObjectIdColumn, Column } from 'typeorm';
 import { IsEnum } from 'class-validator';
-import { Day, Slot } from '@radio-alert/models';
+import { Day, Slot } from '@repo/shared';
 
 @Entity()
 export class Platform {
   @ObjectIdColumn()
-  id: string;
+  id!: string;
 
   @Column()
-  name: string;
+  name!: string;
 
   @Column()
-  url: string;
+  url!: string;
 
   @Column()
-  media: string;
+  media!: string;
 
   @Column()
-  @IsEnum(Day, { each: true, message: 'Day must be one of the following values: weekday, sunday, saturday' })
-  slots: Slot[];
+  @IsEnum(Day, {
+    each: true,
+    message:
+      'Day must be one of the following values: weekday, sunday, saturday',
+  })
+  slots!: Slot[];
 }

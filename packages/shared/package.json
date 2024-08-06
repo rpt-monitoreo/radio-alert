@@ -1,14 +1,11 @@
 {
   "name": "@repo/shared",
   "version": "0.0.0",
-  "exports": {
-    "./counter": "./components/counter.ts",
-    "./header": "./components/header.ts",
-    "./setup-counter": "./utils/counter.ts",
-    "./index": "./src/index.ts"
-  },
+  "main": "./dist/index",
+  "types": "./dist/index",
   "license": "MIT",
   "scripts": {
+    "build": "tsc --build --force tsconfig.json",
     "lint": "eslint \"**/*.ts\""
   },
   "devDependencies": {
