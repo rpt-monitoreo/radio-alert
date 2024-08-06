@@ -1,84 +1,105 @@
 // audio.service.ts
 import { Injectable } from '@nestjs/common';
-import { CreateFileDto, getDateFromFile } from '@repo/shared';
-import ffmpeg from 'fluent-ffmpeg';
+import {
+  AlertDto,
+  AudioFile,
+  CreateFileDto,
+  getDateFromFile,
+} from '@repo/shared';
+import * as ffmpeg from 'fluent-ffmpeg';
 import * as fs from 'fs';
 import * as path from 'path';
 import stream from 'stream';
 
 @Injectable()
 export class AudioService {
-  async createAudioSegment(
-    createFileDto: CreateFileDto,
-  ): Promise<{ startSeconds: number; duration: number }> {
-    const { alert } = createFileDto;
+  async createAudioFile(createFileDto: CreateFileDto): Promise<AudioFile> {
+    const { alert, duration } = createFileDto;
     if (!alert) throw new Error('Alert not found');
 
-    const filePath = path.resolve(alert.filePath ?? '');
+    const filePath = path.resolve(alert.filePath);
     const outputPath = path.resolve(`./audioFiles/${createFileDto.output}.mp3`);
 
-    let startSeconds = 0;
-    if (outputPath.includes('segment')) {
-      const fileTime = getDateFromFile(filePath);
-      const endTime = new Date(alert.endTime ?? '');
-      const endSeconds = (endTime.getTime() - fileTime.getTime()) / 1000;
+    if (createFileDto.output.includes('segment'))
+      return await this.processAudioSegment(
+        alert,
+        duration,
+        filePath,
+        outputPath,
+      );
+    if (createFileDto.output.includes('fragment'))
+      return await this.processAudioFragment(
+        createFileDto,
+        filePath,
+        outputPath,
+      );
 
-      if (endSeconds > createFileDto.duration / 2)
-        startSeconds = endSeconds - createFileDto.duration / 2;
+    throw new Error('No valid type to get Audio');
+  }
+
+  async processAudioSegment(
+    alert: AlertDto,
+    durationIn: number,
+    filePath: string,
+    outputPath: string,
+  ): Promise<AudioFile> {
+    const fileTime = getDateFromFile(filePath);
+    const endTime = new Date(alert.endTime ?? '');
+    const endSeconds = (endTime.getTime() - fileTime.getTime()) / 1000;
+
+    const startSeconds =
+      endSeconds > durationIn / 2 ? endSeconds - durationIn / 2 : 0;
+
+    if (await this.checkFileExists(outputPath)) {
+      const duration = await this.getAudioDuration(outputPath);
+      return { startSeconds, duration };
     } else {
-      startSeconds = createFileDto.startSecond;
-    }
-
-    if (
-      (await this.checkFileExists(outputPath)) &&
-      outputPath.includes('segment')
-    ) {
-      ffmpeg.ffprobe(outputPath, (_, metadata) => {
-        const duration = metadata.format.duration;
-        return { startSeconds, duration };
-      });
-    }
-
-    let duration = 0;
-    if (outputPath.includes('segment')) {
-      duration = await this.extractAudioSegment(
+      const duration = await this.extractAudio(
         filePath,
         startSeconds,
-        createFileDto.duration,
+        durationIn,
         16,
         8000,
         outputPath,
         'mp3',
       );
-    } else {
-      //Fragment
-      const durations = await Promise.all([
-        this.extractAudioSegment(
-          filePath,
-          startSeconds,
-          createFileDto.duration,
-          32,
-          16000,
-          outputPath,
-          'mp3',
-        ),
-        this.extractAudioSegment(
-          filePath,
-          startSeconds,
-          Math.min(createFileDto.duration, 180),
-          128000,
-          44100,
-          outputPath.replace('mp3', 'wav'),
-          'wav',
-        ),
-      ]);
-      duration = durations[0];
+
+      return { startSeconds, duration };
     }
+  }
+  async processAudioFragment(
+    createFileDto: CreateFileDto,
+    filePath: string,
+    outputPath: string,
+  ): Promise<AudioFile> {
+    const startSeconds = createFileDto.startSecond;
+
+    const durations = await Promise.all([
+      this.extractAudio(
+        filePath,
+        startSeconds,
+        createFileDto.duration,
+        32,
+        16000,
+        outputPath,
+        'mp3',
+      ),
+      this.extractAudio(
+        filePath,
+        startSeconds,
+        Math.min(createFileDto.duration, 180),
+        128000,
+        44100,
+        outputPath.replace('mp3', 'wav'),
+        'wav',
+      ),
+    ]);
+    const duration = durations[0];
 
     return { startSeconds: startSeconds, duration };
   }
 
-  async extractAudioSegment(
+  async extractAudio(
     filePath: string,
     startSeconds: number,
     duration: number,
@@ -114,7 +135,7 @@ export class AudioService {
           });
         })
         .on('error', function (err) {
-          return reject(err.toString());
+          return reject(err);
         })
         .run();
     });

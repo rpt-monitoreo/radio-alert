@@ -16,7 +16,7 @@ import {
 } from '@repo/shared';
 import OpenAI from 'openai';
 import { exec } from 'child_process';
-import path from 'path';
+import * as path from 'path';
 import { ConfigService } from '@nestjs/config';
 import { Alert, Note, Transcription } from '../entities';
 import { InjectDataSource } from '@nestjs/typeorm';

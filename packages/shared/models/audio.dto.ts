@@ -1,5 +1,5 @@
-import moment from 'moment';
-import { AlertDto } from './alerts.dto';
+import moment from "moment";
+import { AlertDto } from "./alerts.dto";
 
 export class CreateFileDto {
   readonly alert?: AlertDto | null;
@@ -16,4 +16,9 @@ export interface FileDto {
 export class Fragment {
   readonly startTime?: Date;
   readonly duration?: moment.Duration;
+}
+
+export interface AudioFile {
+  startSeconds: number;
+  duration: number;
 }

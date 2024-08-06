@@ -22,13 +22,13 @@ export class AudioController {
   ): Promise<void> {
     try {
       const { startSeconds, duration } =
-        await this.audioService.createAudioSegment(createFileDto);
+        await this.audioService.createAudioFile(createFileDto);
       res.header('Content-Type', 'application/json');
       res.send({ startSeconds, duration });
     } catch (err) {
       res
         .status(HttpStatus.INTERNAL_SERVER_ERROR)
-        .send({ error: (err as Error).message });
+        .send({ error: (err as Error).message, stack: (err as Error).stack });
     }
   }
 
