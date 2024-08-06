@@ -13,8 +13,7 @@ export class AudioService {
   ): Promise<{ startSeconds: number; duration: number }> {
     const { alert } = createFileDto;
     if (!alert) throw new Error('Alert not found');
-    if (!createFileDto.duration) throw new Error('Duration not found');
-    if (!createFileDto.startSecond) throw new Error('Start second not found');
+
     const filePath = path.resolve(alert.filePath ?? '');
     const outputPath = path.resolve(`./audioFiles/${createFileDto.output}.mp3`);
 

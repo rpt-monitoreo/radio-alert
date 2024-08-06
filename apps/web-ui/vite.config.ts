@@ -9,4 +9,11 @@ export default defineConfig({
   },
   plugins: [react()],
   base: "/radio-alert",
+  server: {
+    port: 4200,
+    host: "localhost",
+  },
+  build: {
+    outDir: "dist",
+  },
 });

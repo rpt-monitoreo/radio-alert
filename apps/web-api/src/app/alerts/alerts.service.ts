@@ -42,7 +42,8 @@ export class AlertsService {
 
   async getChatResponse(getSummaryDto: GetSummaryDto): Promise<SummaryDto> {
     try {
-      const prompt = `Genera un título separado por una línea nueva y un resumen en forma de noticia escrita en tercera persona. 
+      const prompt = `Genera un título separado por una línea nueva y un resumen en forma de noticia escrita en tercera persona,
+      el resumen máximo alrededor de 120 palabras. 
       Asegúrate de que el resumen sea fiel a los hechos y no atribuya incorrectamente acciones o eventos a personas o entidades mencionadas en el texto. 
       Aquí está el texto a resumir: ${getSummaryDto.text}`;
 
@@ -58,12 +59,6 @@ export class AlertsService {
         .replace(/\*/g, '');
       const title = message.split('\n')[0].trim();
       const summary = message.split('\n').slice(1).join('\n').trim();
-
-      // Truncate summary after the last period
-      /* const lastPeriodIndex = summary.lastIndexOf('.');
-      if (lastPeriodIndex !== -1) {
-        summary = summary.substring(0, lastPeriodIndex + 1);
-      } */
 
       await this.noteRepo.update(
         { id: getSummaryDto.noteId },
