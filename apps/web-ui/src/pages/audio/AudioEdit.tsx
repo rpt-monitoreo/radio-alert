@@ -38,19 +38,19 @@ const AudioEdit: React.FC<AudioEditProps> = ({
     (start: number, end: number) => {
       const fileTime = getDateFromFile(selectedAlert?.filePath ?? "");
       fileTime.setUTCHours(fileTime.getUTCHours() + 5);
-
+      const fragmentStartTime = new Date(
+        fileTime.getTime() + (segmentData.startSeconds + start) * 1000
+      );
       setFragment((prevFragment) => ({
         ...prevFragment,
-        startTime: new Date(
-          fileTime.getTime() + segmentData.startSeconds * 1000
-        ),
+        startTime: fragmentStartTime,
         duration: moment.duration(end - start, "seconds"),
       }));
 
       setCreateFileDto((prevCreateFileDto) => ({
         ...prevCreateFileDto,
         alert: selectedAlert,
-        startSecond: segmentData.startSeconds,
+        startSecond: segmentData.startSeconds + start,
         output: `fragment_${selectedAlert?.id}`,
         duration: end - start,
       }));
