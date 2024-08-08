@@ -4,6 +4,8 @@ import { ObjectId } from 'mongodb';
 import { NoteDto } from '@repo/shared';
 import { Note } from '../entities';
 import { InjectDataSource } from '@nestjs/typeorm';
+import * as moment from 'moment';
+import * as path from 'path';
 import * as spawn from 'cross-spawn';
 
 @Injectable()
@@ -22,49 +24,90 @@ export class NotesService {
     });
 
     if (!existingNote) {
-      throw new Error('Platform not found');
+      throw new Error('Note not found');
+    }
+    noteDto.message = this.generateMessage(noteDto);
+    Object.assign(existingNote, noteDto);
+    // Save the updated note
+    return await this.noteRepo.save(existingNote);
+  }
+
+  generateMessage(note: NoteDto): string {
+    function formatDuration(seconds: number): string {
+      const hours = Math.floor(seconds / 3600);
+      const minutes = Math.floor((seconds % 3600) / 60);
+      const remainingSeconds = seconds % 60;
+
+      let formattedDuration = '';
+
+      if (hours > 0) {
+        formattedDuration += `${hours}h `;
+      }
+
+      if (minutes > 0) {
+        formattedDuration += `${minutes}’`;
+      }
+
+      formattedDuration += `${remainingSeconds}”`;
+
+      return `(${formattedDuration.trim()})`;
     }
 
-    Object.assign(existingNote, noteDto);
+    function formatPlainText(text: string): string {
+      return text.replace(/[\n\r\t]/g, ' ').trim();
+    }
 
-    // Save the updated note
-    const updatedNote = await this.noteRepo.save(existingNote);
-    /*  const wasSend = this.sendWhatsAppMessage('hola', '+573003101083');
-    console.log('Message sent: ', wasSend);
-    const audioFile = await this.getAudioFile(updatedNote.id);
+    return `NOTA ${note.index} ${note.program} **${note.title}** ${formatPlainText(note.summary)} ${formatDuration(note.duration)} (${moment(note.startTime).format('h:mm A')})`;
+  }
 
-    if (audioFile) {
-      // Specify the path and filename where you want to save the audio file
-      const filePath = `./savedAudioFiles/${updatedNote.id}.mp3`; // Example path and filename
+  async sendMessage(noteDto: NoteDto): Promise<boolean> {
+    const wasMessageSend = await this.sendWhatsAppMessage(
+      noteDto.message,
+      '573154421610',
+    );
 
-      try {
-        await fs.writeFile(filePath, audioFile);
-        console.log(`Audio file saved successfully at ${filePath}`);
-      } catch (error) {
-        console.error('Failed to save the audio file:', error);
-      }
-    } */
-    return updatedNote;
+    const audioFilePath = path.resolve(
+      `./audioFiles/fragment_${noteDto.alert_id}.mp3`,
+    );
+    console.log(`Sending audio file: ${audioFilePath}`);
+
+    const wasAudioSend = await this.sendWhatsAppMessage(
+      audioFilePath,
+      '573154421610',
+      true,
+    );
+
+    if (!wasMessageSend) {
+      throw new Error('Error sending message');
+    }
+    if (!wasAudioSend) {
+      throw new Error('Error sending audio');
+    }
+
+    return true;
   }
 
   async sendWhatsAppMessage(
-    message: string,
+    content: string,
     phoneNumber: string,
+    isAudio: boolean = false,
   ): Promise<boolean> {
     let wasSend = false;
     try {
       const npxPath = 'C:\\Program Files\\nodejs\\npx.cmd'; // Adjust this path as needed
 
-      const result = spawn.sync(
-        npxPath,
-        ['mudslide', 'send', phoneNumber, message],
-        {
-          encoding: 'utf-8',
-        },
-      );
+      const args = isAudio
+        ? ['mudslide', 'send-file', phoneNumber, content, '--type', 'audio']
+        : ['mudslide', 'send', phoneNumber, content];
 
-      if (result.error) {
-        throw new Error(`Error sending WhatsApp message: ${result.stderr}`);
+      const result = spawn.sync(npxPath, args, {
+        encoding: 'utf-8',
+      });
+
+      if (result.error || result.stderr || result.status !== 0) {
+        throw new Error(
+          `Error sending WhatsApp ${isAudio ? 'audio' : 'message'}: ${result.stderr}`,
+        );
       } else {
         wasSend = true;
       }
@@ -73,46 +116,4 @@ export class NotesService {
     }
     return wasSend;
   }
-
-  /*  async getAudioFile(noteId: string): Promise<Buffer | null> {
-    try {
-      const uri = 'mongodb://localhost:27017/';
-      const dbName = 'monitoring';
-      const client = new MongoClient(uri);
-
-      await client.connect();
-      const db = client.db(dbName);
-
-      // Initialize GridFS
-      const gfs = Grid(db, MongoClient);
-      gfs.collection('fs');
-
-      // Find the file information from fs.files collection
-      const file = await gfs.files.findOne({ 'metadata.note_id': noteId });
-      if (!file) {
-        console.log('No file found');
-        return null;
-      }
-
-      // Retrieve the file content from fs.chunks
-      const readstream = gfs.createReadStream({
-        _id: file._id,
-      });
-
-      const chunks = [];
-      for await (const chunk of readstream) {
-        chunks.push(chunk);
-      }
-
-      // Combine the chunks into a single buffer
-      const fileBuffer = Buffer.concat(chunks);
-
-      await client.close();
-
-      return fileBuffer;
-    } catch (error) {
-      console.error('Failed to retrieve file:', error);
-      return null;
-    }
-  } */
 }

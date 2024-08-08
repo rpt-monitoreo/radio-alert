@@ -17,9 +17,14 @@ import { CorsOptions } from '@nestjs/common/interfaces/external/cors-options.int
 //import { ConfigService } from '@nestjs/config';
 
 async function bootstrap() {
+  const fastifyAdapter = new FastifyAdapter({
+    logger: true,
+    bodyLimit: 10485760, // 10 MB
+    connectionTimeout: 600000, // 10 minutes
+  });
   const app = await NestFactory.create<NestFastifyApplication>(
     AppModule,
-    new FastifyAdapter({ logger: true }),
+    fastifyAdapter,
   );
   const corsOptions: CorsOptions = {
     origin: [

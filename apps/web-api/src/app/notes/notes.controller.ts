@@ -26,4 +26,19 @@ export class NotesController {
       );
     }
   }
+
+  @Post('send-note')
+  async sendNote(@Body() noteDto: NoteDto) {
+    try {
+      return await this.notesService.sendMessage(noteDto);
+    } catch (error) {
+      throw new HttpException(
+        {
+          status: HttpStatus.INTERNAL_SERVER_ERROR,
+          error: `There was an error processing the request seendNote ${error}`,
+        },
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
 }
