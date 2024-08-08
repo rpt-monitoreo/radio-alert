@@ -8,6 +8,7 @@ import AudioEdit from "../audio/AudioEdit";
 import moment from "moment";
 import SummaryEdit from "../notes/SummaryEdit";
 import { useNote } from "../notes/NoteContext";
+import NoteEdit from "../notes/NoteEdit";
 
 interface AlertsModalProps {
   visible: boolean;
@@ -109,19 +110,29 @@ const AlertsModal: React.FC<AlertsModalProps> = ({ visible, onClose }) => {
 
   const next = () => {
     if (current === 1) {
-      formSummary.validateFields().then((values) => {
-        setNote({
-          ...note,
-          index: values.index,
-          program: values.program,
-          title: values.title,
-          summary: values.summary,
-        });
-        setCurrent(current + 1);
-      });
+      if (note?.id) {
+        formSummary.submit();
+      } else {
+        message.error("Debe generar el texto antes de continuar");
+        return;
+      }
     } else {
       setCurrent(current + 1);
     }
+  };
+
+  const onFinish = () => {
+    formSummary.validateFields().then((values) => {
+      setNote({
+        ...note,
+        index: values.index,
+        program: values.program,
+        title: values.title,
+        summary: values.summary,
+        audioLabel: values.audioLabel,
+      });
+      setCurrent(current + 1);
+    });
   };
 
   useEffect(() => {
@@ -135,19 +146,6 @@ const AlertsModal: React.FC<AlertsModalProps> = ({ visible, onClose }) => {
     setCurrent(current - 1);
   };
 
-  function objectToPrettyHtml(obj: unknown) {
-    // Convert object to JSON string with indentation
-    let jsonString = JSON.stringify(obj, null, 2);
-
-    // Escape HTML special characters
-    jsonString = jsonString
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;");
-
-    // Wrap in <pre> tag for formatting
-    return `<pre>${jsonString}</pre>`;
-  }
   const steps = [
     {
       title: "Editar Audio",
@@ -170,7 +168,9 @@ const AlertsModal: React.FC<AlertsModalProps> = ({ visible, onClose }) => {
       ) : (
         segmentData && (
           <Spin spinning={isLoadingFragment}>
-            {fragmentData && <SummaryEdit form={formSummary}></SummaryEdit>}
+            {fragmentData && (
+              <SummaryEdit form={formSummary} onFinish={onFinish}></SummaryEdit>
+            )}
           </Spin>
         )
       ),
@@ -182,7 +182,7 @@ const AlertsModal: React.FC<AlertsModalProps> = ({ visible, onClose }) => {
       ) : (
         noteData && (
           <Spin spinning={isLoadingNote}>
-            {noteData && objectToPrettyHtml(noteData)}
+            <NoteEdit note={noteData}></NoteEdit>
           </Spin>
         )
       ),

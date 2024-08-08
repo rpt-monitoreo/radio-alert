@@ -11,4 +11,6 @@ export class NoteDto {
   readonly startTime?: string;
   readonly duration?: number;
   readonly audioLabel?: string;
+  readonly alert_id?: string;
+  message?: string;
 }

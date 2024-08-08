@@ -31,4 +31,7 @@ export class Note {
 
   @Column()
   audioLabel!: string;
+
+  @Column()
+  message!: string;
 }

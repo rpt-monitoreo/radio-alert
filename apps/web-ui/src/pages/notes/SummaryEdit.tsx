@@ -6,6 +6,7 @@ import {
   FormInstance,
   FormProps,
   Input,
+  message,
   Row,
   Select,
   Spin,
@@ -57,8 +58,9 @@ type FieldType = {
 
 interface SummaryEditProps {
   form: FormInstance<FieldType>;
+  onFinish: () => void;
 }
-const SummaryEdit: React.FC<SummaryEditProps> = ({ form }) => {
+const SummaryEdit: React.FC<SummaryEditProps> = ({ form, onFinish }) => {
   const { selectedAlert } = useAlert();
   const { note, setNote } = useNote();
   const getSummaryDtoRef = useRef(new GetSummaryDto()); // Replace initialGetSummaryDtoValue with the initial value
@@ -122,6 +124,7 @@ const SummaryEdit: React.FC<SummaryEditProps> = ({ form }) => {
 
     form.setFieldsValue({
       program: defaultSlot?.label,
+      audioLabel: defaultSlot?.audioLabel,
     });
     setNote({
       ...note,
@@ -208,16 +211,15 @@ const SummaryEdit: React.FC<SummaryEditProps> = ({ form }) => {
       ...note,
       audioLabel: slot?.audioLabel,
     });
-  };
-
-  const onFinish: FormProps<FieldType>["onFinish"] = (values) => {
-    console.log("Success:", values);
+    form.setFieldsValue({ audioLabel: slot?.audioLabel });
   };
 
   const onFinishFailed: FormProps<FieldType>["onFinishFailed"] = (
     errorInfo
   ) => {
-    console.log("Failed:", errorInfo);
+    message.error(
+      `Form submission failed. Please complete all required fields. ${errorInfo.errorFields.map((field) => field.name).join(", ")}`
+    );
   };
 
   if (!selectedAlert) return <div>No alert selected</div>;
@@ -339,7 +341,9 @@ const SummaryEdit: React.FC<SummaryEditProps> = ({ form }) => {
                 </Form.Item>
               </Spin>
             )}
-
+            <Form.Item<FieldType> label="Audio" name="audioLabel">
+              <Input placeholder="Enter audio label" disabled={true} />
+            </Form.Item>
             <Spin spinning={isLoadingSummary || isLoadingTranscription}>
               <Form.Item<FieldType>
                 label="Titular"

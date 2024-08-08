@@ -47,6 +47,8 @@ export class AlertsService {
       Asegúrate de que el resumen sea fiel a los hechos y no atribuya incorrectamente acciones o eventos a personas o entidades mencionadas en el texto. 
       Aquí está el texto a resumir: ${getSummaryDto.text}`;
 
+      // return { title: 'Titulo', summary: prompt };
+
       const response = await this.openai.chat.completions.create({
         model: 'gpt-4o',
         messages: [{ role: 'user', content: prompt }],
