@@ -47,21 +47,17 @@ export class AlertsService {
     try {
       const prompt = `Genera un título separado por una línea nueva y un resumen en forma de noticia escrita en tercera persona,
       el resumen máximo alrededor de 120 palabras. 
-      Asegúrate de que el resumen sea fiel a los hechos y no atribuya incorrectamente acciones o eventos a personas o entidades mencionadas en el texto. 
-      Aquí está el texto a resumir: ${getSummaryDto.text}`;
+      Asegúrate de que el resumen sea fiel a los hechos y no atribuya incorrectamente acciones o eventos a personas o entidades mencionadas en el texto.`;
 
       // return { title: 'Titulo', summary: prompt };
 
-      const response = await this.openai.chat.completions.create({
-        model: 'gpt-4o',
-        messages: [{ role: 'user', content: prompt }],
+      const response = await this.openai.responses.create({
+        model: 'gpt-5-mini',
+        instructions: prompt,
+        input: getSummaryDto.text,
       });
-      if (!response.choices[0].message.content)
-        throw new Error('No content in response');
 
-      const message = response.choices[0].message?.content
-        .replace(/#/g, '')
-        .replace(/\*/g, '');
+      const message = response.output_text.replace(/#/g, '').replace(/\*/g, '');
       const title = message.split('\n')[0].trim();
       const summary = message.split('\n').slice(1).join('\n').trim();
 
