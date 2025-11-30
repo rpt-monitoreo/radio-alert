@@ -87,7 +87,7 @@ export class AudioService {
       this.extractAudio(
         filePath,
         startSeconds,
-        Math.min(createFileDto.duration, 180),
+        createFileDto.duration,
         64000,
         16000,
         outputPath.replace('mp3', 'wav'),

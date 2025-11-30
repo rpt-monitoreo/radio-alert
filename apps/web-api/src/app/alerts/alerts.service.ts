@@ -14,12 +14,15 @@ import {
   TranscriptionDto,
   ValidDatesDto,
 } from '@repo/shared';
+import { splitAudio } from './audio-chunker';
+import { transcribeWithPython } from './google-speech';
 import OpenAI from 'openai';
 import { exec } from 'child_process';
 import * as path from 'path';
 import { ConfigService } from '@nestjs/config';
 import { Alert, Note, Transcription } from '../entities';
 import { InjectDataSource } from '@nestjs/typeorm';
+import * as fs from 'fs/promises';
 
 @Injectable()
 export class AlertsService {
@@ -122,17 +125,53 @@ export class AlertsService {
     getTranscriptionDto: GetTranscriptionDto,
   ): Promise<TranscriptionDto> {
     if (!getTranscriptionDto.filename) throw new Error('Filename is required');
-    const scriptPath = './scripts/getTranscription.py';
+
     const filePath = path.resolve(
       `./audioFiles/${getTranscriptionDto.filename}`,
     );
 
-    await this.runPythonScript(scriptPath, [filePath]);
+    const chunkPaths = await splitAudio(filePath, 60);
+
+    // Procesar todos los chunks en paralelo sin límite de concurrencia
+    const texts = await Promise.all(
+      chunkPaths.map((chunk) =>
+        transcribeWithPython(chunk).catch((e) => {
+          console.error('Error transcribing chunk', chunk, e);
+          return '--error--' as string;
+        }),
+      ),
+    );
+    const fullText = texts.join(' ');
+
+    const chunksDir = path.dirname(chunkPaths[0]);
+    try {
+      await fs.rm(chunksDir, { recursive: true, force: true });
+    } catch (err) {
+      console.error('Error deleting chunks directory:', err);
+    }
 
     const alertId = getTranscriptionDto.filename
       .split('_')[1]
       .replace('.wav', '');
-    const note = await this.noteRepo.findOne({ where: { alert_id: alertId } });
+
+    let note = await this.noteRepo.findOne({ where: { alert_id: alertId } });
+
+    if (note) {
+      // Si existe, actualiza el texto
+      note.text = fullText;
+      await this.noteRepo.save(note);
+      // Puedes devolver noteId si lo necesitas
+    } else {
+      // Si no existe, crea una nueva nota
+      note = this.noteRepo.create({
+        alert_id: alertId,
+        text: fullText,
+        // agrega otros campos si es necesario
+      });
+      await this.noteRepo.save(note);
+      // Puedes devolver noteId si lo necesitas
+    }
+
     if (!note) throw new Error('Note not found');
     return { noteId: note.id, text: note.text };
   }
