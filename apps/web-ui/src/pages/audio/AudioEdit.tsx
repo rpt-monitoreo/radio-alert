@@ -69,15 +69,17 @@ const AudioEdit: React.FC<AudioEditProps> = ({
   const calculatePositions = () => {
     const fileTime = getDateFromFile(selectedAlert.filePath ?? "");
 
-    const startTime = new Date(selectedAlert.startTime ?? "");
-    const endTime = new Date(selectedAlert.endTime ?? "");
+    const startTime = new Date(
+      selectedAlert.startTime?.replace("Z", "-05:00") ?? ""
+    );
+    const endTime = new Date(
+      selectedAlert.endTime?.replace("Z", "-05:00") ?? ""
+    );
 
     const startSecond =
-      10 +
       (startTime.getTime() - fileTime.getTime()) / 1000 -
       segmentData.startSeconds;
     const endSecond =
-      10 +
       (endTime.getTime() - fileTime.getTime()) / 1000 -
       segmentData.startSeconds;
 

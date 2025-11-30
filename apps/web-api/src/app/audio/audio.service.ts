@@ -44,7 +44,7 @@ export class AudioService {
     outputPath: string,
   ): Promise<AudioFile> {
     const fileTime = getDateFromFile(filePath);
-    const endTime = new Date(alert.endTime ?? '');
+    const endTime = new Date(alert.endTime.replace('Z', '-05:00') ?? '');
     const endSeconds = (endTime.getTime() - fileTime.getTime()) / 1000;
 
     const startSeconds =
@@ -88,8 +88,8 @@ export class AudioService {
         filePath,
         startSeconds,
         Math.min(createFileDto.duration, 180),
-        128000,
-        44100,
+        64000,
+        16000,
         outputPath.replace('mp3', 'wav'),
         'wav',
       ),

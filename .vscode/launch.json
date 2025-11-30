@@ -1,0 +1,48 @@
+{
+  // Use IntelliSense to learn about possible attributes.
+  // Hover to view descriptions of existing attributes.
+  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Debug NestJS API",
+      "cwd": "${workspaceFolder}/apps/web-api",
+      "runtimeExecutable": "C:\\Users\\juanb\\AppData\\Roaming\\nvm\\v18.17.0\\npm.cmd",
+      "runtimeArgs": ["run", "start:debug"],
+      "restart": true,
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen",
+      "sourceMaps": true,
+      "skipFiles": ["<node_internals>/**"],
+      "outFiles": ["${workspaceFolder}/apps/web-api/dist/**/*.js"]
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Run Web-UI Dev (Node)",
+      "cwd": "${workspaceFolder}/apps/web-ui",
+      "runtimeExecutable": "C:\\Users\\juanb\\AppData\\Roaming\\nvm\\v18.17.0\\npm.cmd",
+      "runtimeArgs": ["run", "dev"],
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen"
+    },
+    {
+      "type": "chrome",
+      "request": "launch",
+      "name": "Debug Web-UI (Chrome)",
+      "url": "http://localhost:4200",
+      "webRoot": "${workspaceFolder}/apps/web-ui/src",
+      "preLaunchTask": "npm: dev - web-ui",
+      "sourceMaps": true
+    }
+  ],
+  "compounds": [
+    {
+      "name": "Full Stack Debug",
+      "configurations": ["Debug NestJS API", "Debug Web-UI (Chrome)"],
+      "stopAll": true
+    }
+  ]
+}
