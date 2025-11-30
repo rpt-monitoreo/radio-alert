@@ -9,6 +9,7 @@
     "deploy": "gh-pages -d ./apps/web-ui/dist"
   },
   "devDependencies": {
+    "@nestjs/cli": "^10.0.0",
     "@types/node": "^22.0.0",
     "eslint": "^8.57.0",
     "gh-pages": "^6.1.1",
@@ -16,5 +17,12 @@
     "turbo": "^2.0.9"
   },
   "packageManager": "pnpm@8.15.6",
-  "name": "with-vite"
+  "name": "with-vite",
+  "dependencies": {
+    "@fastify/compress": "7.0.3",
+    "fastify": "4.29.1"
+  },
+  "resolutions": {
+    "fastify": "4.29.1"
+  }
 }
