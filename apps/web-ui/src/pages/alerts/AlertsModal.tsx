@@ -217,7 +217,6 @@ const AlertsModal: React.FC<AlertsModalProps> = ({ visible, onClose }) => {
       title={`${selectedAlert.platform} - ${selectedAlert.clientName}`}
       loading={isLoadingSegment}
       onCancel={onClose}
-      onClose={onClose}
       width="100vw"
       destroyOnClose={true}
       footer={null}

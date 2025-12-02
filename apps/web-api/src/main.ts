@@ -14,7 +14,7 @@ import {
   NestFastifyApplication,
 } from '@nestjs/platform-fastify';
 import { CorsOptions } from '@nestjs/common/interfaces/external/cors-options.interface';
-//import { ConfigService } from '@nestjs/config';
+import { ConfigService } from '@nestjs/config';
 
 async function bootstrap() {
   const fastifyAdapter = new FastifyAdapter({
@@ -38,10 +38,10 @@ async function bootstrap() {
 
   app.enableCors(corsOptions);
   app.register(compression);
-  //const configService = app.get(ConfigService);
+  const configService = app.get(ConfigService);
   const globalPrefix = '';
   app.setGlobalPrefix(globalPrefix);
-  const port = 3000; // configService.get<number>('PORT') || 3000;
+  const port = configService.get<number>('BACK_PORT') || 3000;
   await app.listen(port, '0.0.0.0');
 
   Logger.log(
