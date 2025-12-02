@@ -1,12 +1,14 @@
 {
   "private": true,
   "scripts": {
-    "build": "turbo build",
     "dev": "turbo dev",
     "lint": "turbo lint",
     "test": "turbo run test",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
-    "deploy": "gh-pages -d ./apps/web-ui/dist"
+    "deploy": "gh-pages -d ./apps/web-ui/dist",
+    "start": "concurrently  \"nx serve web-ui\"  \"nx serve web-api-local\"",
+    "build": "concurrently \"nx build web-api-local\"",
+    "build:ui": "nx build web-ui"
   },
   "devDependencies": {
     "@google-cloud/speech": "^7.2.1",
