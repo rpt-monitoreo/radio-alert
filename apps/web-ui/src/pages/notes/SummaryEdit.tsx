@@ -33,7 +33,11 @@ import Title from "antd/es/typography/Title";
 import { useNote } from "./NoteContext";
 import moment from "moment";
 import WaveSurfer from "wavesurfer.js";
-import { PauseCircleOutlined, PlayCircleOutlined } from "@ant-design/icons";
+import {
+  DownloadOutlined,
+  PauseCircleOutlined,
+  PlayCircleOutlined,
+} from "@ant-design/icons";
 
 const { Option } = Select;
 
@@ -123,6 +127,31 @@ const SummaryEdit: React.FC<SummaryEditProps> = ({ form, onFinish }) => {
   }, [waveformUrl]);
 
   const togglePlayPause = () => waveRef.current?.playPause();
+
+  const handleDownloadMP3 = async () => {
+    try {
+      // Fetch the audio file
+      const response = await fetch(waveformUrl);
+      const blob = await response.blob();
+
+      // Create a download link
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `fragment_${selectedAlert?.id}.mp3`;
+      document.body.appendChild(a);
+      a.click();
+
+      // Clean up
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+
+      message.success("Audio descargado exitosamente");
+    } catch (error) {
+      message.error("Error al descargar el audio");
+      console.error("Download error:", error);
+    }
+  };
 
   const {
     data: platforms,
@@ -291,7 +320,14 @@ const SummaryEdit: React.FC<SummaryEditProps> = ({ form, onFinish }) => {
           </Button>
 
           {/* WaveSurfer container replaces the native <audio> for better scrubbing */}
-          <div id="waveform-container" style={{ width: "80%" }} />
+          <div id="waveform-container" style={{ width: "70%" }} />
+
+          <Button
+            icon={<DownloadOutlined />}
+            onClick={handleDownloadMP3}
+            size="small"
+            title="Descargar MP3"
+          />
 
           <Button
             type="primary"
