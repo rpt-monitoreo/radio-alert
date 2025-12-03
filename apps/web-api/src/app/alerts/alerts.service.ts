@@ -51,13 +51,13 @@ export class AlertsService {
 
       // return { title: 'Titulo', summary: prompt };
 
-      const response = await this.openai.responses.create({
+      /* const response = await this.openai.responses.create({
         model: 'gpt-5-mini',
         instructions: prompt,
         input: getSummaryDto.text,
-      });
+      }); */
 
-      const message = response.output_text.replace(/#/g, '').replace(/\*/g, '');
+      const message = prompt; //response.output_text.replace(/#/g, '').replace(/\*/g, '');
       const title = message.split('\n')[0].trim();
       const summary = message.split('\n').slice(1).join('\n').trim();
 

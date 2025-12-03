@@ -32,6 +32,8 @@ import api from "../../services/Agent";
 import Title from "antd/es/typography/Title";
 import { useNote } from "./NoteContext";
 import moment from "moment";
+import WaveSurfer from "wavesurfer.js";
+import { PauseCircleOutlined, PlayCircleOutlined } from "@ant-design/icons";
 
 const { Option } = Select;
 
@@ -83,6 +85,44 @@ const SummaryEdit: React.FC<SummaryEditProps> = ({ form, onFinish }) => {
         : new GetTranscriptionDto(),
     [selectedAlert]
   );
+
+  // WaveSurfer state/refs
+  const waveRef = useRef<WaveSurfer | null>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+
+  useEffect(() => {
+    if (!waveformUrl) return;
+
+    // Destroy previous instance
+    waveRef.current?.destroy();
+
+    const ws = WaveSurfer.create({
+      container: "#waveform-container",
+      waveColor: "#9aa0a6",
+      progressColor: "#1890ff",
+      cursorColor: "#333",
+      height: 80,
+      url: waveformUrl,
+      interact: true,
+    });
+
+    ws.on("play", () => setIsPlaying(true));
+    ws.on("pause", () => setIsPlaying(false));
+    ws.on("finish", () => setIsPlaying(false));
+    // When the user interacts with the waveform (e.g., seeks), start playing from that point
+    ws.on("interaction", () => {
+      ws.play();
+    });
+
+    waveRef.current = ws;
+
+    return () => {
+      ws.destroy();
+      waveRef.current = null;
+    };
+  }, [waveformUrl]);
+
+  const togglePlayPause = () => waveRef.current?.playPause();
 
   const {
     data: platforms,
@@ -159,7 +199,6 @@ const SummaryEdit: React.FC<SummaryEditProps> = ({ form, onFinish }) => {
           text: transcriptionData?.text,
           words: selectedAlert.words,
         };
-        generateSummary(getSummaryDtoRef.current);
       },
     }
   );
@@ -238,11 +277,21 @@ const SummaryEdit: React.FC<SummaryEditProps> = ({ form, onFinish }) => {
             }}
           />
         </Row>
-        <Row align="middle" justify="space-between">
-          <audio src={waveformUrl} controls style={{ width: "90%" }}>
-            <track kind="captions" src="captions.vtt" label="Captions" />
-            Tu navegador no soporta el elemento de audio.
-          </audio>
+        <Row
+          align="middle"
+          justify="space-between"
+          style={{ marginRight: "24px" }}
+        >
+          <Button
+            icon={isPlaying ? <PauseCircleOutlined /> : <PlayCircleOutlined />}
+            onClick={togglePlayPause}
+            size="small"
+          >
+            {isPlaying ? "Pausar" : "Reproducir"}
+          </Button>
+
+          {/* WaveSurfer container replaces the native <audio> for better scrubbing */}
+          <div id="waveform-container" style={{ width: "80%" }} />
 
           <Button
             type="primary"
@@ -257,15 +306,27 @@ const SummaryEdit: React.FC<SummaryEditProps> = ({ form, onFinish }) => {
         {errorTranscription ? (
           <div>Error cargando la transcripción</div>
         ) : (
-          <Spin spinning={isLoadingTranscription}>
-            <Title level={4}>Transcripción</Title>
-            <TextArea
-              value={transcriptionData?.text}
-              placeholder="Transcripción..."
-              autoSize={{ minRows: 10, maxRows: 20 }}
-              style={{ height: "100%" }}
-            />
-          </Spin>
+          <div>
+            <Spin spinning={isLoadingTranscription}>
+              <Title level={4}>Transcripción</Title>
+              <TextArea
+                value={transcriptionData?.text}
+                placeholder="Transcripción..."
+                autoSize={{ minRows: 10, maxRows: 20 }}
+                style={{ height: "100%" }}
+              />
+            </Spin>
+            <Row style={{ margin: "12px" }} justify="end">
+              <Button
+                type="primary"
+                onClick={() => generateSummary(getSummaryDtoRef.current)}
+                size="small"
+                disabled={!transcriptionData}
+              >
+                Resumen
+              </Button>
+            </Row>
+          </div>
         )}
       </Col>
       <Col span={12}>

@@ -37,7 +37,7 @@ const AudioEdit: React.FC<AudioEditProps> = ({
   const onSelection = useCallback(
     (start: number, end: number) => {
       const fileTime = getDateFromFile(selectedAlert?.filePath ?? "");
-      fileTime.setUTCHours(fileTime.getUTCHours() + 5);
+
       const fragmentStartTime = new Date(
         fileTime.getTime() + (segmentData.startSeconds + start) * 1000
       );

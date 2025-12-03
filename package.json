@@ -6,17 +6,21 @@
     "test": "turbo run test",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "deploy": "gh-pages -d ./apps/web-ui/dist",
-    "start": "concurrently  \"nx serve web-ui\"  \"nx serve web-api-local\"",
+    "start:v1": "concurrently  \"nx serve web-ui \"  \"nx serve web-api  \"",
     "build": "concurrently \"nx build web-api-local\"",
-    "build:ui": "nx build web-ui"
+    "build:api": "cd apps/web-api && set NODE_ENV=production&& set BACK_PORT=3001 && pnpm run build ",
+    "build:ui": "cd apps/web-ui && set VITE_PORT=4300 && pnpm run build ",
+    "start": "concurrently  \"cd apps/web-api && set BACK_PORT=3001 && node dist/main.js \"  \"cd apps/web-ui  &&  npx vite preview --port 4300 --host localhost \""
   },
   "devDependencies": {
     "@google-cloud/speech": "^7.2.1",
     "@nestjs/cli": "^10.0.0",
     "@types/node": "^22.0.0",
+    "concurrently": "^9.2.1",
     "eslint": "^8.57.0",
     "ffmpeg-static": "^5.3.0",
     "gh-pages": "^6.1.1",
+    "nx": "^22.1.3",
     "prettier": "^3.2.5",
     "turbo": "^2.0.9"
   },

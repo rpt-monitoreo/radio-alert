@@ -35,7 +35,11 @@
       "url": "http://localhost:4200",
       "webRoot": "${workspaceFolder}/apps/web-ui/src",
       "preLaunchTask": "npm: dev - web-ui",
-      "sourceMaps": true
+      "sourceMaps": true,
+      "env": {
+        "PORT": "4200",
+        "VITE_PORT": "4200"
+      }
     }
   ],
   "compounds": [
